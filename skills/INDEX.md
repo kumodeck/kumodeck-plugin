@@ -9,6 +9,8 @@ KUMODeck does not run those systems: the code, the data and the rules (cheating,
 say so when you add one.
 
 The same files are in `.agents/skills/` (Codex) and `.claude/skills/` (Claude Code).
+In a terminal, run `kumodeck skills update` once when you start: it replaces Skills older than the CLI's (Skills changed
+in this folder are kept). Skills from the KUMODeck plugin for Claude Code: the user runs `/plugin marketplace update kumodeck`.
 Codex initially sees names and descriptions; use this index if a matching Skill was not selected automatically.
 Whichever agent you are, and whether you opened a Skill by yourself or not: pick one from the table, read its `SKILL.md`
 from top to bottom and follow it. The other files in that folder are the code to copy.
@@ -49,13 +51,18 @@ anything ("the live one", "the other one"). Production is "your published app" a
 | production | your published app (https://…, the real URL) | 公開中のアプリ（https://…・本物の URL） |
 | development | your test app (https://…, the real URL) | テスト用のアプリ（https://…・本物の URL） |
 | deployed to development | it is on your test app: try it at https://… | テスト用のアプリ（https://…）に出しました。ここで試せます |
-| deploy to production? | also put it on your published app (https://…)? | 公開中のアプリ（https://…）にも出しますか？ |
+| deploy to production? (after a test publish) | not a question, no explanation: "Test version: https://…. Say "publish it" when you want to publish." | 質問も説明もしない:「テスト用: https://…。公開するときは『公開して』と言ってください。」 |
 | the publishable key (`pk_…`) | the key written into the app (people using it can see it, and that is fine) | アプリに書き込むキー（使う人にも見える・見えても大丈夫） |
 | the secret key (`sk_…`) | the key used only on the server (never shown to anyone, never pasted into a chat) | サーバーだけで使うキー（人に見せない・会話に貼らない） |
 | the OpenAI API key / secret key | the long text that starts with sk- (from the OpenAI site) | OpenAI のサイトでもらった sk- で始まる長い文字列 |
 | set the secret in production | save the OpenAI key for your published app (https://…) | 公開中のアプリ（https://…）に OpenAI のキーを入れる |
 | I created an endpoint / API | the game now asks the server for the ranking | ランキングをサーバーに聞くようにしました |
 | the request failed with 401 | the sign-in has expired | ログインが切れています |
+
+While you work, never show tool argument names or inside words in progress messages: not "uploading to the test app only
+(no `everyone`)", not `prepare`, `uploadId`, `--env`. Say what happens: "Putting your game on your test app…"
+(「テスト用のアプリに出しています…」). After a test publish, end with the one closing line of the `deploy` Skill §1 (the URL
+and how to publish), not with notes, explanations or a question.
 
 ## No terminal and no files (Claude or ChatGPT on the web)
 

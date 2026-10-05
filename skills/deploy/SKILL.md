@@ -17,47 +17,49 @@ Never guess the hosting domain: use the URL the command prints (`url` in `--json
 
 ## 1. Publishing intent and the one human confirmation
 
-For clients other than Codex, use the conversation question below. For Codex, use the dedicated flow that follows
-instead of that extra question; all test-only and previous-refusal safeguards still apply.
+For clients other than Codex, end with the closing line below. For Codex, use the dedicated flow that follows instead;
+all test-only and previous-refusal safeguards still apply.
 
-- **Which environment.** Development unless the user clearly said production: "ship / release / go live / production /
-  本番". Say which one you are about to publish to, in plain words with its real URL ("your test app
-  (https://…)" / "your published app (https://…)"; `INDEX.md` → "Talking to the user").
-  Production is what people see: do not publish there on your own.
-- **Whenever you give the user a test app URL**, add: "This link is your test app: X shows no card for it. To post it on X,
-  publish it first and post your published app's link." (「これはテスト用のアプリの URL です。X に貼ってもカードは出ません。
-  X に投稿するなら、先に公開して公開中のアプリの URL を貼ってください」). `kumodeck deploy` prints it (`--json`: `testAppNote`).
-- **"Publish" / "deploy" / "put it online" / "公開して" alone is not "ship".** Deploy to development and show the URL. Then ask
-  **once**, in one line, in plain words: "Also put it on your published app (https://…)?" (「公開中のアプリ（https://…）にも
-  出しますか？」), with the real production URL in place of https://… (the URL a production deploy printed earlier;
-  never guess it). Not published yet, or you have no production URL: "Also publish it, so anyone can open it
-  at its own URL?" / 「誰でも開ける URL でも公開しますか？」, then show the real URL once it is out. `nextAsk` in
-  `kumodeck deploy --json` asks the same thing: say it with these words (`INDEX.md` → "Talking to the user").
-  - yes → run `next` from the output (`kumodeck deploy --env production`) right away: the production steps below;
-  - no, or no answer (you cannot ask, e.g. a non-interactive run) → stay on development, say so, and do not ask again.
-  - **Only once per conversation, right after the first development deploy.** `nextAsk` comes with every development
-    deploy: do not ask again after later development deploys (a new feature, the database, a fix), after the user answered,
-    or once the app is in production. When the app is already in production, say in one line that the live app still has
-    the previous version until they ask to ship. Features turned on in `kumo.config.json` (e.g. `saves`) are turned on in
-    production by that `kumodeck deploy --env production`, in the same single confirmation.
+- **Which environment.** After you make or fix something, put it on the test app without being asked (development), show
+  the URL and end with the closing line below. Production is what people see: do not publish there on your own.
+- **"Publish it" / "公開して" / "ship" / "go live" / "本番" (or the like), said after the user has seen the test app** → publish to
+  the published app: run `next` from the output (`kumodeck deploy --env production`) right away, the production steps below.
+  The user confirms it once in the browser. Features on in `kumo.config.json` (e.g. `saves`) go on in production in that
+  same single confirmation. No special phrase is needed.
+- **A publish request before the user has seen it** (the first request is "make it and publish it" / 「作って公開して」, or
+  you just changed it): test app first, then the closing line. Never publish to everyone what the user has not seen yet.
+- **The closing line after a test publish:** one line, in the user's language, **no question and no explanation**
+  (`testAppNote` in `kumodeck deploy --json` and `tellTheUser` of `publish_game` have it):
+  - Not published yet: "Test version: https://…. Say "publish it" when you want to publish." /
+    「テスト用: https://…。公開するときは『公開して』と言ってください。」
+  - Already published: "Test version: https://…. Say "publish it" to update https://…." /
+    「テスト用: https://…。公開中の https://… にも出すときは『公開して』と言ってください。」 Use the real published URL (from
+    the tool result or an earlier production deploy); never guess it.
+  - Add nothing about how the two differ (who can open it, that it changes, X cards, the "This is a test version" bar):
+    answer only if the user asks. If they try to post the test link on X, say why X shows no card for it and that they can
+    say "publish it" first (`ifAskedAboutX` in the output).
+- **While working, never show tool argument names or inside words** (`everyone`, "test app only", `prepare`, `uploadId`,
+  `--env`): say what is happening in plain words ("Putting it on your test app…" / 「テスト用のアプリに出しています…」).
 - **A note for the history** (optional): `-m "new boss fight"` shows up in `kumodeck deployments`.
 
 ## Codex: publishing intent and the one human confirmation
 
 <!-- WHY（2026-10-04 のレビュー）: 公開の依頼で確認ページを開くまで進め、チャットの追加返答待ちをなくす。 -->
-- **"Publish" / "put it online" / 「公開して」**: deploy to development first, verify the intended behavior there,
-  then prepare the production publish and open KUMODeck's confirmation page. The request authorizes preparation;
-  **only the user's confirmation on that page authorizes the live change**. Do not add a chat question asking whether
-  to publish too, and do not act on `nextAsk` as another question. Failed or unverified development checks: stop before
-  preparing production and report what remains to be checked.
-- **Test-only requests** ("let me try it", 「試用版だけ」「まだ公開しない」), or a previous refusal: stay on development.
+- **"Publish" / "put it online" / 「公開して」 (or the like)**: deploy to development first,
+  verify the intended behavior there, then prepare the production publish and open KUMODeck's confirmation page. The
+  request authorizes preparation; **only the user's confirmation on that page authorizes the live change**. Do not add a
+  chat question asking whether to publish too: Codex skips the closing line of §1 (`testAppNote` / `nextAsk`), because
+  the confirmation page is already the next step. Failed or unverified development checks: stop before preparing
+  production and report what remains to be checked.
+- **Test-only requests** ("let me try it", 「試用版だけ」「まだ公開しない」), or a previous refusal: stay on development, and
+  end with the closing line of §1 (no question, no explanation).
   DB / API work alone does not authorize publication. Do not open a publish confirmation after each feature change.
 - A request to ship or update the live app uses the same confirmation flow after checks. Do not assume that uploading
   files or opening a link means the app is published. Keep the old live version until KUMODeck reports success.
 - Announce the waiting place in the user's language. Japanese: 「試用版で動きを確かめました。公開の確認ページを開きます。」
   Once pending: 「ブラウザで『公開する』を押すのを待っています。チャットへの返事は要りません。」
   If a link cannot be opened, show the returned link and say 「このリンクを開いて『公開する』を押してください。」
-- A history note is optional: `-m "new boss fight"`.
+- A history note is optional: `-m "new boss fight"`. As in §1, never show argument names (`everyone`, `--env`) in progress.
 
 ## Codex: tools and command permissions
 
@@ -164,12 +166,15 @@ files, no settings to change (the upload page in step 5 is the only exception, a
 2. **Send the files** with `projectId`: text files as `content` (plain text), images and sounds as `contentBase64`, paths
    from the site root (`index.html` at the root). About 100 KB per call: a bigger game goes **in parts** — `more: true`
    on each part, the `uploadId` from the first part's result on the next ones, and a last call without `more`, which
-   publishes. Parts work up to several MB, images and sounds included. The result has the URL: show it ("your test app
-   (https://…)", `tellTheUser`).
+   publishes. Parts work up to several MB, images and sounds included. End your reply with `tellTheUser` in the user's
+   language: the closing line of §1 (no question, no explanation; `ifAskedAboutX` only if they try
+   to post it on X or ask). While sending, say it in plain words ("Putting your game on the test app…"), never the
+   argument names (`everyone`, `prepare`, `more`, `uploadId`).
 3. **Settings:** `config` = part of `kumo.config.json` (e.g. `{ "multiplayer": { "modes": [...] } }`), on any call. It is
    merged into the current settings (objects merge, lists replace), checked like a push, and refused with the path if
    something is wrong (nothing changes).
-4. **Production (everyone).** Same rule as §1: only when the user asked for the live app. `publish_game` with `projectId`,
+4. **Production (everyone).** Same rule as §1: only when the user says "publish it" / 「公開して」 (or the like) after
+   seeing the test app. `publish_game` with `projectId`,
    `everyone: true` and the files (or the last part) uploads first and then asks the user once (a confirmation in the chat,
    or a link to press) before people see it; hosting, the features on in the test app and `config` are in that same
    confirmation. On `approval_required` with a `confirmUrl`: open it / show it as in §5, then call `publish_game` with

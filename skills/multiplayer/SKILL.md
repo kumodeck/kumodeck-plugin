@@ -13,7 +13,7 @@ File next to this SKILL.md (copy it, then adapt — do not rewrite it from scrat
 
 | File | Copy to | What it is |
 |---|---|---|
-| [multiplayer-client.js](multiplayer-client.js) | `public/multiplayer-client.js` (the game's deployed folder) | `playOnline()`: back to a kept seat after a reload, then a friend's code, a private room or quick match; events, reconnects, warnings |
+| [multiplayer-client.js](multiplayer-client.js) | `public/multiplayer-client.js` (the game's deployed folder) | `resumeAfterReload()` (page load: back in the match after a reload) and `playOnline()` (a friend's code, a private room or quick match); events, who dropped, reconnects, warnings |
 
 ## 0. Ask once, in plain words, with the price first
 
@@ -143,7 +143,18 @@ That is still the one round.
 
 1. Copy `multiplayer-client.js` into `public/`. `kumo` comes from `connectKumo()` (`kumo-boot.js`); players are signed in
    as guests automatically, which is enough for rooms.
-2. Start online play from a button (never on page load, so a single-player path always remains):
+2. On page load, before showing the menu, go back to a match this tab was in (a reload in the middle of a match —
+   host or guest, including a guest who came by invite link):
+   ```js
+   import { playOnline, resumeAfterReload } from './multiplayer-client.js';
+   const back = await resumeAfterReload({ kumo, mode: 'duel', ...callbacks }); // same callbacks as playOnline below
+   if (back) { online = back; continueMatchFrom(online.state); } else showMenu();
+   ```
+   It goes back only when it is **the same tab, the same player and the seat is still kept** (about 10 s after the tab
+   closed, 20 s after a dropped connection); otherwise it returns `null` at once without connecting. Redraw from
+   `online.state` (messages sent while the page was reloading are not replayed). If only the host's tab ran the match
+   (timers, physics), keep what must survive a reload in `setState`, or end the match plainly when the host comes back.
+   Then start online play from a button (never on page load, so a single-player path always remains):
    ```js
    import { playOnline } from './multiplayer-client.js';
    let online = null;
@@ -155,6 +166,7 @@ That is still the one round.
          onPlayers: (players) => drawPlayers(players),   // [{ id, displayName, connected, state }]
          onState: (state) => drawBoard(state),
          onStatus: (s) => showStatus(s),                  // matching | playing | reconnecting | ended:<reason>
+         onPresence: (p) => showPresence(p),              // { playerId, kind: disconnected|reconnected|left, reason }
          onWarning: (w) => console.warn(w.code)           // rate_limited / payload_too_large: that message was dropped
        });
      } catch (e) { showStatus(e.code === 'match_cancelled' ? 'idle' : 'error'); }
@@ -169,7 +181,10 @@ That is still the one round.
    it is known (`attach` becomes `'attached'`, `'failed'` or `'none'`), which is the moment to log them or send them to your own server.
 3. **Friends** (no quick match): `playOnline({ kumo, mode, hostPrivate: true })` makes a private room; show
    `online.code` (6 letters) or an invite link `?join=<code>`; the friend runs `playOnline({ kumo, mode, code })`.
-   At boot, read `?join=` from the URL and join that code. Private rooms never appear in quick match or `kumo.rooms.list()`.
+   At boot, read `?join=` from the URL and join that code — **first thing**, before the heavy loading (3D models, sounds,
+   big libraries): call `connectKumo()` from a small module that runs first and load the rest with dynamic `import()`, so
+   signing in, connecting and joining (about half a second) overlap the loading instead of waiting behind it. Start the
+   match as soon as `playerJoined` arrives (no extra handshake). `online.room.timings` shows where the wait went. Private rooms never appear in quick match or `kumo.rooms.list()`.
    A lobby of open rooms: `await kumo.rooms.list('party')` → `[{ code, players, maxPlayers, metadata }]`.
 4. **Talk**:
    - `online.send('move', { x, y })` → everyone else gets `message` (`{ to: [playerId] }` for one player). Ordered,
@@ -182,22 +197,31 @@ That is still the one round.
 5. **Start the match**: when everyone is ready, the host calls `online.start()` (locks the room: quick match stops adding
    players; `room_locked` for anyone trying to join).
 6. **Host**: `online.isHost` / `room.hostId` = the earliest-joined connected player. When the host leaves or drops,
-   the next player becomes host at once (`hostChanged`); a returning player never takes it back. For a game with rules
+   the next player becomes host at once (`hostChanged`); a returning player never takes it back. The room is **not**
+   closed when the host goes: it lives while anyone is in it. So if the host's tab runs the match, the new host must
+   either carry on from `room.state` or end the match with a plain message ("The host left") — never leave a frozen screen. For a game with rules
    (turns, hits, who won), let the host decide and publish the result with `setState`. For a friends' room where only
    the host may write shared state: `playOnline({ kumo, mode, hostPrivate: true, roomOptions: { hostOnlyState: true } })`
    (others get `host_only`; rooms made by quick match let every player write).
-7. **Reconnects** (built in, keep them):
+7. **Someone dropped** (react at once, do not wait for `playerLeft`): `onPresence({ kind: 'disconnected', reason })`
+   (`room.on('playerDisconnected')`) arrives within seconds — `reason: 'closed'` = they closed or reloaded the tab (the SDK
+   tells the server when the page goes away), `'lost'` = their connection dropped or went silent. Show "Waiting for
+   <name>…" and pause or let a bot take the seat. Then `reconnected` (back, carry on) or `left` (gone: `reason 'left'`
+   about 10 s after a closed tab, `'timeout'` 20 s after a lost connection). In direct modes it also fires when only the
+   direct link between two players broke.
+8. **Reconnects** (built in, keep them):
    - A dropped connection reconnects by itself and the server keeps the seat for **about 20 seconds** (default): the others see the
      player as `connected: false`; `onStatus('reconnecting')`, then `resumed` refreshes players and state from a snapshot.
      Messages sent meanwhile are **not** replayed: redraw from `room.state`, never from a message log.
-   - After a page reload, `playOnline` goes back to the kept seat by itself (`kumo.rooms.fetchHeldRoom()` +
-     `kumo.rooms.rejoin()`). Not back within 20 s → the others get `playerLeft` with reason `timeout`.
+   - After a page reload, `resumeAfterReload()` (page load) or `playOnline` (button) go back to the kept seat
+     (`kumo.rooms.rejoinIfReloaded()` / `fetchHeldRoom()` + `rejoin()`). A closed tab keeps the seat ~10 s; a mode with a
+     longer `seatHoldSeconds` keeps its own time.
    - The room ends with `ended:<reason>`; show a neutral "Connection lost" and offer to play again.
-8. **Direct modes** (`transport: "p2p"`): the same code works; `online.room.peers` / the `peer` event
+9. **Direct modes** (`transport: "p2p"`): the same code works; `online.room.peers` / the `peer` event
    (`{ playerId, state, relayed }`) tell you who is connected. On `state: 'failed'` (happens with `relay: "never"` when two
    players cannot reach each other) show a plain message such as "Could not connect to this player — try again or play
    with a code on another Wi-Fi" instead of waiting forever. A full direct room refuses joins with `p2p_room_full`.
-9. **Test with two players**: deploy to development (`kumodeck deploy --env development`), open the URL in two tabs and add
+10. **Test with two players**: deploy to development (`kumodeck deploy --env development`), open the URL in two tabs and add
    `?player=2` to the second (templates give that tab its own guest). Without the templates' `kumo-boot.js`, use a second
    browser or a private window: one browser profile is one player, and a second tab replaces the first one's connection.
 
@@ -215,25 +239,48 @@ Say plainly to the user: rooms relay and keep order, they do not run the game on
 make the host the referee (host decides, `setState` publishes); anything worth cheating for goes through their own
 Functions and database. **Protect in D1, not in saves**: never trust a score a player's game reports to a ranking or a prize.
 
-## 4. Limits (from the server; design within them)
+## 4. Limits (set them per mode; design within them)
 
-The sizes below can change (KUMODeck adds no limits of its own beyond Cloudflare's), so this Skill gives no numbers for
-them: a refusal names the limit (`details.limit`, or the `message`), and `kumodeck config push` refuses a `maxPlayers`
-above the maximum and names it. Do not copy a number into the game. The `limits` Skill explains each limit and the way
-around it.
+Each room's limits come from its mode. The defaults suit most games; a game that needs more raises them in the mode's
+`limits` in `kumo.config.json`, up to a maximum that comes from Cloudflare (one room is one Durable Object: about 1,000
+requests a second and one stored value of 2 MB). `kumodeck config push` refuses a value above the maximum and names it.
+The numbers below are for choosing the values in `kumo.config.json`. Do not copy them into the game's code: a refusal
+names the limit (`details.limit`, or the `message`). The `limits` Skill explains why each one exists.
+In a room, `room.limits` has that room's values (`maxMessageBytes`, `maxStateBytes`, `maxPlayerStateBytes`, `messagesPerSecond`, `seatHoldMs` in milliseconds; `null` on an older server).
 
-| Limit | What you get when you pass it |
-|---|---|
-| Players per room (per mode, `maxPlayers`); quick match fills a room up to it | a push refused with `details.issues` |
-| Message size per `send` | `payload_too_large` |
-| Shared state / one player's state | `state_too_large` |
-| Room metadata (lobby list) | `metadata_too_large` |
-| Messages a second per player: about 30 (burst 60) — a protection that stays | the excess is dropped with a warning (`rate_limited`); send 10–20 a second and interpolate |
-| Seat kept after a drop or reload: a short time (`seat_expired` after) | the player joins as new |
-| Idle connection outside any room | closed; the next call reconnects |
+```json
+{ "key": "battle", "minPlayers": 2, "maxPlayers": 16,
+  "limits": { "messagesPerSecond": 60, "maxMessageBytes": 65536, "maxStateBytes": 262144, "seatHoldSeconds": 60 } }
+```
 
-One room is one server object: keep **players × messages per player per second at about 1,000 or less** (e.g. 30
-players sending 30 a second). For bigger crowds, use several rooms.
+| Limit (in the mode) | Default → maximum | What you get when you pass it |
+|---|---|---|
+| Players per room (`maxPlayers`); quick match fills a room up to it | as written → 1,000 | a push refused with `details.issues` |
+| Messages a second per player (`limits.messagesPerSecond`) | 30 (short bursts up to twice that) → 240 | the excess is dropped with a warning (`rate_limited`); a player who keeps flooding is disconnected |
+| Message size per `send` (`limits.maxMessageBytes`) | 16 KB → 1 MB | `payload_too_large` |
+| Shared state (`limits.maxStateBytes`) / one player's state (`limits.maxPlayerStateBytes`) | 64 KB → 1 MB / 8 KB → 64 KB; shared state plus every player's state stays under 1.75 MB in all | `state_too_large` |
+| Seat kept after a drop or reload (`limits.seatHoldSeconds`) | 20 s → 1 hour (`seat_expired` after) | the player joins as new |
+| Room metadata (lobby list) | — | `metadata_too_large` |
+| Idle connection outside any room (`multiplayer.idleTimeoutSeconds`, for the whole game) | 10 minutes → 1 day | closed; the next call reconnects |
+
+- One room is one server object: keep **players × messages per player per second at about 1,000 or less** (e.g. 30
+  players sending 30 a second). Every message goes to every player, so raising `messagesPerSecond` or `maxPlayers` far
+  makes the room slow before it reaches the maximum: send 10–20 a second and interpolate, batch values in one message,
+  and use several rooms for bigger crowds.
+- Raised limits cost what they use (more messages, more data) at cost from prepaid credit. Tell the user in one line
+  when you raise one, and why.
+- **Direct modes** (`"transport": "p2p"`): game data never passes through KUMODeck's servers, so there is no size limit
+  by default (the SDK splits large messages and states). A game that wants its own limits, for example so a modified
+  client cannot push a huge state, sets them in the page:
+  `kumo.rooms.setP2POptions({ maxMessageBytes, maxStateBytes, maxPlayerStateBytes })` (going over gives
+  `payload_too_large` / `state_too_large` with `details.limit`). One received message is capped at 64 MiB by default
+  (`maxReceiveBytes`, to protect the player's device; raise it only for games with very large states). The same call
+  tunes connecting: `connectTimeoutMs` (10 s), `disconnectGraceMs` (5 s), `maxRestarts` (3), `offerWaitMs` (5 s),
+  `stateTimeoutMs` (15 s); these also apply to voice. It applies to direct rooms started after the call.
+- **Relay budget** (direct modes with `relay: "always"` or `"fallback"`, and voice): each environment may issue a limited
+  number of relay credentials a minute (by default 3,000 a minute, plus 2,400 voice sessions). For a big launch,
+  raise it with `multiplayer.relayQuota` (`turnIssuesPerMinute`, `sfuSessionsPerMinute`; up to 15,000 each) — the budget
+  is shared with every other app on KUMODeck, which is why it stops there. Issuing is free; relayed traffic is billed at cost.
 
 Errors from `playOnline` / `kumo.rooms` carry `code`: `room_not_found` (wrong code, or a development code used in
 production), `room_full`, `room_locked`, `unknown_mode`, `match_cancelled`, `seat_expired`, `already_in_room`,

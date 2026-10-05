@@ -1,6 +1,6 @@
 ---
 name: limits
-description: What can stop an app or game on KUMODeck, why, and the way around it: sizes, counts and rates (Cloudflare's own limits, the protections KUMODeck keeps, and the rest read from the refusal's details.limit), and the prepaid balance (KUMODeck is paid first, unlike Cloudflare; auto top-up keeps it running). Use when a request is refused for being too big, too many or too fast (413 save_too_large / payload_too_large / state_too_large / too_many_files / file_too_large, 400 too_many_variables, 429 rate_limited), when planning something large (big saves, big rooms, many files, heavy server code), when the user asks how much / how many / how big it can be, or why the app stopped when the balance ran out.
+description: What can stop an app or game on KUMODeck, why, and the way around it: sizes, counts and rates (Cloudflare's own limits, the protections KUMODeck keeps, and the rest read from the refusal's details.limit), and the prepaid balance (KUMODeck is paid first, unlike Cloudflare; auto top-up keeps it running). Use when a request is refused for being too big, too many or too fast (413 save_too_large / payload_too_large / state_too_large / too_many_files / file_too_large, 400 too_many_variables, 429 rate_limited), when planning something large (big saves, big rooms, many files, heavy server code), when the user asks how much / how many / how big it can be, when a rate limit should be raised for the app (rateLimits in kumo.config.json) or a heavy Functions request stops at the CPU limit (it follows the prepaid balance), or why the app stopped when the balance ran out.
 ---
 
 # Limits: what stops you, why, and the way around
@@ -25,7 +25,8 @@ Every refusal is JSON with `code`, `message`, `details` and often `hint`. The li
 |---|---|
 | a size or count (413 `save_too_large`, 400 `too_many_variables`, 413 `too_many_files` / `file_too_large`, …) | `details.limit` (and usually `details.size` = what you sent). Some realtime refusals (413 `payload_too_large`, 413 `state_too_large`) say it in `message` |
 | a setting out of range (400 `invalid_request`, e.g. `kumodeck config push`, `kumodeck functions limits`) | `details.issues[].message` names the allowed maximum; `details.issues[].path` names the field |
-| too fast (429 `rate_limited`) | `details.retryAfter` (seconds) and `details.rule` (which rule) |
+| too fast (429 `rate_limited`) | `details.retryAfter` (seconds), `details.rule` (which rule), `details.limit` and `details.windowSeconds` (the rule's count and window), and `details.configurable` (`true` = the app can change it: section 3) |
+| a broken page link in a list (400 `invalid_cursor`) | `details.cursor`: `malformed` or `other_list` — drop `cursor` and read again from the first page |
 
 Rules for the code you write:
 
@@ -69,11 +70,11 @@ The current values are given where they help you design; the refusal is still th
 
 | Limit | Why it exists | The way around |
 |---|---|---|
-| **Request rates** (429 `rate_limited`): e.g. about 60 save writes a minute per user; per-IP rates on the API, the hosted site and realtime connects; rates on deploy, `config push` and database admin commands | a single device, a buggy loop or a flood from someone else must not burn the creator's prepaid credit or slow other people's apps; admin commands share Cloudflare's per-account API budget | write less often (debounce: the `user-data` helper writes once per burst); wait `details.retryAfter`; batch admin changes. If real users (not a bug) hit a rule, tell the user to write to the contact address in the "Asking for a higher limit" section of the docs site's Limits page (`/docs/limits/#asking-for-a-higher-limit` on the docs site — the same site `docsUrl` in errors points to) with the rule name (`details.rule`): it can be raised for their project, billed at cost |
-| **Realtime messages per player**: about 30 a second (burst 60); excess is dropped with a warning (`rate_limited`), and a player who keeps flooding is disconnected | a modified client must not multiply the creator's bill or drown the room | send positions at 10–20 per second and interpolate; send changes, not every frame; batch several values in one message |
+| **Request rates** (429 `rate_limited`): e.g. about 60 save writes a minute per user; per-IP rates on the API, the hosted site, Functions and realtime connects; rates on deploy, `config push` and database admin commands | a single device, a buggy loop or a flood from someone else must not burn the creator's prepaid credit or slow other people's apps; admin commands share Cloudflare's per-account API budget | write less often (debounce: the `user-data` helper writes once per burst); wait `details.retryAfter`; batch admin changes. If real users (not a bug) hit a rule with `details.configurable: true`, raise it for this app with `rateLimits` (below). Sign-in guards and the creator's own commands cannot be changed there; for those, tell the user to write to the contact address in the "Asking for a higher limit" section of the docs site's Limits page (`/docs/limits/#asking-for-a-higher-limit` on the docs site — the same site `docsUrl` in errors points to) with the rule name (`details.rule`) |
+| **Realtime messages per player**: 30 a second by default, with short bursts up to twice that; excess is dropped with a warning (`rate_limited`), and a player who keeps flooding is disconnected | a modified client must not multiply the creator's bill or drown the room | send positions at 10–20 per second and interpolate; send changes, not every frame; batch several values in one message. A game that really needs more raises it per mode: `multiplayer.modes[].limits.messagesPerSecond` (up to 240; the `multiplayer` Skill, section 4) |
 | **Realtime channels**: per player, per channel and per IP send rates; open channels (anyone, no account) are small: short messages, few people, 1 message a second, 30 minutes per stay | channels without accounts cannot ban anyone, so the harassment space stays small | use player channels (signed-in) for anything bigger; rejoin after 30 minutes (the SDK does not rejoin open channels by itself) |
 | **Voice calls**: a cap on people per call, calls end after 4 hours, each listener hears the loudest 8 | relaying audio costs money for every minute a forgotten tab stays open | rejoin to continue; leave the call when the match ends |
-| **Call / direct-connection credentials** (TURN / SFU) per environment per minute and per player per hour | Cloudflare's relay budget is shared by every app on KUMODeck; one app must not use it all | fetch credentials once per session, not on every reconnect. If a launch needs more, tell the user to ask through the same contact ("Asking for a higher limit" on the docs site's Limits page) |
+| **Call / direct-connection credentials** (TURN / SFU) per environment per minute (by default 3,000 TURN credentials and 2,400 voice sessions a minute) and per player per hour | Cloudflare's relay budget is one per account and shared by every app on KUMODeck; one app must not use it all | fetch credentials once per session, not on every reconnect. A launch that needs more raises its own environment with `multiplayer.relayQuota` in `kumo.config.json` (`turnIssuesPerMinute`, `sfuSessionsPerMinute`; up to 15,000 each = half of the shared budget, so other apps keep the rest; a higher value is refused by `config push` with the maximum). Issuing is free; relayed traffic is billed at cost. Beyond that, ask through the same contact |
 | **Direct (P2P) signalling**: small messages, about 10 a second | the signalling server must not become a free relay that skips the room's price | use it only to connect; send game data over the direct connection or a server room |
 | **Invite links for direct rooms** expire (default 30 minutes, at most 24 hours) | a leaked link lets strangers in only for a short time | make a new link when needed; set a longer expiry (up to the maximum) for a planned session |
 | **Player sessions**: the access token lasts 15 minutes, the sign-in about 90 days | a stolen token is useful only briefly | nothing: the SDK refreshes by itself |
@@ -88,6 +89,48 @@ The current values are given where they help you design; the refusal is still th
 | **Request IDs** (`Idempotency-Key`) of up to 128 characters | keeps the database index small | use a UUID |
 | **Payments for credit**: a cap per payment; auto top-up waits an hour between charges and a day after a failed one | stolen cards and double charges | add funds in several payments; fix the card in the dashboard |
 | **KUMODeck's MCP tools**: about 120 calls a minute per tool per developer; `hosting_deploy` carries the files inside the conversation | a shared server for every developer; a conversation cannot hold a large site | use the `kumodeck` CLI for anything bigger than a small page (`kumodeck deploy`) and for loops of many calls |
+
+### Changing a rate limit for this app (`rateLimits`)
+
+Rate limits are counted per app, and the app can raise, lower or remove the ones a 429 marks `details.configurable: true`
+(flood guards per IP address, a player's own writes, calls from the app's own server code). Write them in
+`kumo.config.json`, then `kumodeck config push` (production only when the user asks):
+
+```json
+{ "rateLimits": {
+  "api.default.ip": { "multiplier": 5 },
+  "gamedata.save.player": { "limit": 600 },
+  "functions.invoke.ip": { "limit": 100, "window": "1m" },
+  "hosting.serve.ip": "off"
+} }
+```
+
+- `{ "multiplier": x }` = a multiple of the default; `{ "limit": n }` = a count per window (add `"window"`: `30s`, `10m`,
+  `1h`, `1d` to change the window too); `"off"` = do not apply the rule to this app.
+- Use the rule name from `details.rule`. A name that cannot be changed (sign-in guards, the creator's account, money)
+  makes the push fail with 400 and a list of the names that can.
+- **Tell the user the trade-off in one line before raising or removing one**: requests above the default are normal usage
+  billed at cost from prepaid credit, and with a flood guard removed, a flood from someone else is billed to them too.
+  Lowering a rule is the way to protect a small app from floods.
+- It takes up to about 5 seconds after the push to apply everywhere.
+
+### Functions CPU time follows the prepaid balance
+
+One Functions request (and one request to a server-rendered app) may use up to Cloudflare's own maximum CPU time
+(30 seconds by default, up to 5 minutes, chosen with `kumodeck functions limits --cpu-ms <n>`). How much of that applies
+**right now depends on the prepaid balance**:
+
+- **Why**: usage reaches the balance a few minutes after it happens, so requests that run before the app is stopped at $0
+  could cost more than the balance. Tying the per-request ceiling to the balance keeps that worst case inside it.
+- **The rule today**: about 5 ms of CPU per request for every cent of balance, shared by the environments that run
+  server code, never below 5 seconds and never above 5 minutes. For one environment: $20 → 10 seconds, $60 → 30 seconds,
+  $600 → 5 minutes. Auto top-up amounts do not count until they are charged.
+- The chosen value is kept even when the balance is too low; it applies by itself about a minute after a top-up.
+- **Read it, don't compute it**: `kumodeck functions status --json` shows `limits.cpuMs` (what applies now),
+  `limits.requested` (what was chosen), `limits.cpuMsCap` (what the balance allows) and `limits.requiredBalance` (the
+  balance in cents the chosen value needs, or `null` when it is enough). When a heavy request stops at the CPU limit and
+  `cpuMs` is below `requested`, tell the user that adding prepaid credit raises it; otherwise move the work into
+  Queues or Cron, or split it.
 
 ## 4. Cloudflare's own limits (the same on your own account)
 
@@ -109,23 +152,29 @@ These come from Cloudflare (developers.cloudflare.com, "Limits" pages) or from a
 
 ## 5. Every other limit: read it, don't copy it
 
-Other sizes and counts (save slots and their size, room size and message size, file counts per deploy, Functions CPU
-time and subrequests, config counts, list lengths) were chosen by KUMODeck and **are being raised to Cloudflare's own
-level**. That is why they are not written here or in the other Skills:
+Other sizes and counts (save slots and their size, room size and message size, file counts per deploy, config counts,
+list lengths) were chosen by KUMODeck and **are being raised to Cloudflare's own level**. That is why they are not
+written here or in the other Skills:
 
 1. Build without guessing a smaller limit. Do not pre-split data or pre-shrink assets "just in case".
 2. If a refusal comes, read `details.limit` (section 1), then fit the design to it: split the data over more slots or
    rows, page through lists, put large files in R2, split a room. Tell the user which limit it was.
-3. For Functions CPU time and subrequests: `kumodeck functions status` shows the current per-request setting and
+3. For Functions CPU time and subrequests (Cloudflare's own range; CPU also follows the balance, section 3):
+   `kumodeck functions status` shows the current per-request setting and
    `kumodeck functions limits --cpu-ms <n> --subrequests <n>` changes it; a value above the maximum is refused with the
-   maximum in `details.issues`. Code that needs the range before asking reads `limitRanges` (`{ min, max, default }`
+   maximum in `details.issues`. Add `--app` for a server-rendered app instead of Functions. The CPU time that runs is
+   also capped by the prepaid balance (more balance, longer CPU time, up to Cloudflare's maximum): when the status says
+   "you chose … ms", tell the user the balance it needs (`requiredBalance` in `--json`) and that `kumodeck billing topup`
+   adds funds. Code that needs the range before asking reads `limitRanges` (`{ min, max, default }`
    for `cpuMs` and `subRequests`) from `GET /v1/admin/functions` (secret key; also at `/v1/projects/<id>/environments/<env>/functions`) on servers that
    send it.
    Heavy work that does not fit belongs in Queues or Cron.
 4. The range for one prepaid top-up is `topUpLimits` (`{ min, max }` in cents) in `GET /v1/money/prepaid`, where the
    server sends it. Do not write dollar amounts into a page or a script.
 5. Long lists page: when a response has `nextCursor`, pass it back as `cursor` until it is `null` or missing
-   (Functions deployments, the prepaid ledger, …). Never assume the first page is everything.
+   (Functions deployments, the prepaid ledger, …). Never assume the first page is everything. A cursor that was changed,
+   cut off or taken from another list is refused on every list the same way (400 `invalid_cursor`): start again
+   without `cursor`.
 
 ## 6. Limits in the templates are the app's own
 

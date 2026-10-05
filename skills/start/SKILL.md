@@ -193,14 +193,13 @@ kumodeck deploy --env development         # uploads public/ (web-app: dist/) and
 For Codex, show the real URL and follow `deploy` §1 and its Codex publishing flow: verify first, then open the
 human confirmation page without another conversation question. For other clients, keep the following flow.
 
-Show the URL to the user and ask them to try it (on a phone too), with this line: "This link is your test app: X shows no
-card for it. To post it on X, publish it first and post your published app's link." (「これはテスト用のアプリの URL です。X に
-貼ってもカードは出ません。X に投稿するなら、先に公開して公開中のアプリの URL を貼ってください」). The page shows a small
-"This is a test version" bar at the top (only in the test app; it can be closed). Details, production and rollback: the `deploy` Skill.
-Then ask **once**, in plain words: "Also publish it, so anyone can open it at its own URL?" (「誰でも開ける URL でも
-公開しますか？」; the exact words are in the `deploy` Skill, section 1. "publish" / "公開して" alone means development
-first). Only here, right after this first development deploy: do not ask again after later development
-deploys (a new feature, the database), after the user answered, or once the app is in production. Yes, or the user says to ship it:
+Show the URL to the user and ask them to try it (on a phone too). End with the closing line of the `deploy` Skill, §1, in
+the user's language (one line, **no question and no explanation**; `testAppNote` in `kumodeck deploy --json`):
+"Test version: https://…. Say "publish it" when you want to publish." (「テスト用: https://…。公開するときは『公開して』と
+言ってください。」). Say nothing about how it differs from the published app (who can open it, that it changes, X cards,
+the small "This is a test version" bar at the top): answer only if the user asks. Details, production and rollback: the
+`deploy` Skill. A request to publish made before the user has seen it ("make it and publish it") means this test app
+first; when the user, after trying it, says "publish it" / 「公開して」 (or the like):
 
 ```sh
 kumodeck config check --env production    # no confirmation: it saves nothing
@@ -209,7 +208,7 @@ kumodeck deploy --env production          # deploy's default is development: say
 ```
 
 Each production change opens a confirmation page in the user's browser (or prints the link when it cannot) and waits: **they**
-confirm once there; the command then finishes by itself (the `deploy` Skill). No, or no answer: stay on development.
+confirm once there; the command then finishes by itself (the `deploy` Skill). Until they say it: stay on development.
 
 Everything in KUMODeck is **off until turned on** (guest sign-in always works). The template's `kumo.config.json` turns on
 what it uses (`hosting`, `saves`, `stats`; `multiplayer` in the multiplayer templates). Push it to **each** environment
