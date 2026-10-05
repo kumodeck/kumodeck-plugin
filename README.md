@@ -51,3 +51,7 @@ Connectors added on the web or the desktop app also work in the Claude phone app
 ## Help
 
 support@kumodeck.com
+
+## License
+
+MIT — see [LICENSE](LICENSE).
