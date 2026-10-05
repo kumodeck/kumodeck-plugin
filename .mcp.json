@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "kumodeck": {
+      "type": "http",
+      "url": "https://mcp.kumodeck.com/mcp"
+    }
+  }
+}

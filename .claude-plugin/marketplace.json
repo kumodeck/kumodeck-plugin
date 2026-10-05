@@ -1,0 +1,15 @@
+{
+  "name": "kumodeck",
+  "description": "The KUMODeck plugin for Claude Code.",
+  "owner": {
+    "name": "KUMODeck",
+    "email": "support@kumodeck.com"
+  },
+  "plugins": [
+    {
+      "name": "kumodeck",
+      "source": ".",
+      "description": "Build a web app or game and put it online with KUMODeck, from the chat."
+    }
+  ]
+}
