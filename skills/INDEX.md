@@ -61,7 +61,8 @@ anything ("the live one", "the other one"). Production is "your published app" a
 
 While you work, never show tool argument names or inside words in progress messages: not "uploading to the test app only
 (no `everyone`)", not `prepare`, `uploadId`, `--env`. Say what happens: "Putting your game on your test app…"
-(「テスト用のアプリに出しています…」). After a test publish, end with the one closing line of the `deploy` Skill §1 (the URL
+(「テスト用のアプリに出しています…」). Publish to the test app with `kumodeck test-deploy` (it cannot reach the published app).
+After a test publish, end with the one closing line of the `deploy` Skill §1 (the URL
 and how to publish), not with notes, explanations or a question.
 
 ## No terminal and no files (Claude or ChatGPT on the web)

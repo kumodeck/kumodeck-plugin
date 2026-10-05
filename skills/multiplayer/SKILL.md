@@ -221,7 +221,7 @@ That is still the one round.
    (`{ playerId, state, relayed }`) tell you who is connected. On `state: 'failed'` (happens with `relay: "never"` when two
    players cannot reach each other) show a plain message such as "Could not connect to this player — try again or play
    with a code on another Wi-Fi" instead of waiting forever. A full direct room refuses joins with `p2p_room_full`.
-10. **Test with two players**: deploy to development (`kumodeck deploy --env development`), open the URL in two tabs and add
+10. **Test with two players**: deploy to development (`kumodeck test-deploy`), open the URL in two tabs and add
    `?player=2` to the second (templates give that tab its own guest). Without the templates' `kumo-boot.js`, use a second
    browser or a private window: one browser profile is one player, and a second tab replaces the first one's connection.
 

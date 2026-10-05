@@ -20,7 +20,7 @@ Never guess the hosting domain: use the URL the command prints (`url` in `--json
 For clients other than Codex, end with the closing line below. For Codex, use the dedicated flow that follows instead;
 all test-only and previous-refusal safeguards still apply.
 
-- **Which environment.** After you make or fix something, put it on the test app without being asked (development), show
+- **Which environment.** After you make or fix something, put it on the test app without being asked (`kumodeck test-deploy`: development only, it takes no `--env`), show
   the URL and end with the closing line below. Production is what people see: do not publish there on your own.
 - **"Publish it" / "公開して" / "ship" / "go live" / "本番" (or the like), said after the user has seen the test app** → publish to
   the published app: run `next` from the output (`kumodeck deploy --env production`) right away, the production steps below.
@@ -29,7 +29,7 @@ all test-only and previous-refusal safeguards still apply.
 - **A publish request before the user has seen it** (the first request is "make it and publish it" / 「作って公開して」, or
   you just changed it): test app first, then the closing line. Never publish to everyone what the user has not seen yet.
 - **The closing line after a test publish:** one line, in the user's language, **no question and no explanation**
-  (`testAppNote` in `kumodeck deploy --json` and `tellTheUser` of `publish_game` have it):
+  (`testAppNote` in `kumodeck test-deploy --json` and `tellTheUser` of `publish_game` have it):
   - Not published yet: "Test version: https://…. Say "publish it" when you want to publish." /
     「テスト用: https://…。公開するときは『公開して』と言ってください。」
   - Already published: "Test version: https://…. Say "publish it" to update https://…." /
@@ -45,7 +45,7 @@ all test-only and previous-refusal safeguards still apply.
 ## Codex: publishing intent and the one human confirmation
 
 <!-- WHY（2026-10-04 のレビュー）: 公開の依頼で確認ページを開くまで進め、チャットの追加返答待ちをなくす。 -->
-- **"Publish" / "put it online" / 「公開して」 (or the like)**: deploy to development first,
+- **"Publish" / "put it online" / 「公開して」 (or the like)**: `kumodeck test-deploy` first (development),
   verify the intended behavior there, then prepare the production publish and open KUMODeck's confirmation page. The
   request authorizes preparation; **only the user's confirmation on that page authorizes the live change**. Do not add a
   chat question asking whether to publish too: Codex skips the closing line of §1 (`testAppNote` / `nextAsk`), because
@@ -86,7 +86,7 @@ kumodeck whoami           # logged in (exit code 3 = the user runs `kumodeck log
 - `public/kumo-config.js` has real publishable keys. `kumodeck deploy` warns when it still says `REPLACE_ME` or has no key
   for the environment: then the page runs offline. Fix: `kumodeck init` in the project folder.
 - The folder to upload has `index.html` at its root. Templates upload `public/` (saved as `deployDir` in `kumo.json`).
-  A project with a build step (Vite etc.): build first, then `kumodeck deploy dist`.
+  A project with a build step (Vite etc.): build first, then `kumodeck test-deploy dist`.
 - **A server-rendered app** (Astro with its Cloudflare adapter, SvelteKit, Nuxt, React Router framework mode, TanStack Start,
   Hono, SolidStart, Next.js with vinext or OpenNext): do not pass a folder. Run `kumodeck deploy` in the project folder and read §9 first.
 
@@ -95,7 +95,7 @@ kumodeck whoami           # logged in (exit code 3 = the user runs `kumodeck log
 ```sh
 kumodeck config check                             # KUMODeck checks every rule first; saves nothing (exit 1 = fix, check again)
 kumodeck config push                              # settings (kumo.config.json) → development
-kumodeck deploy --env development -m "first try"  # upload + make it live → prints the URL
+kumodeck test-deploy -m "first try"               # your test app (development) only → prints the URL
 ```
 
 **Before every `config push`, run `kumodeck config check --env <the same env>`** (`--json` to read it). KUMODeck checks the file with
@@ -134,6 +134,7 @@ Which environment each command uses when you leave out `--env` (they differ — 
 |---|---|
 | `kumodeck config push`, `kumodeck features`, `kumodeck functions …` | development |
 | `kumodeck deploy`, `kumodeck deployments`, `kumodeck rollback` | development (production only with `--env production`) |
+| `kumodeck test-deploy` | development only (no `--env`; it cannot publish to the published app) |
 | `kumodeck share on` | both |
 
 What `deploy` does: hashes every file, uploads only files KUMODeck does not have yet (a redeploy after a small change uploads
@@ -310,8 +311,8 @@ React Router in framework mode, TanStack Start, Hono, SolidStart). KUMODeck runs
 static assets. The build runs on this computer with the project's own tools (wrangler; vite for vinext); KUMODeck never builds your code.
 
 ```sh
-kumodeck deploy --env development --dry-run   # builds, then checks with KUMODeck: sizes, files to upload, databases it will create
-kumodeck deploy --env development             # builds, uploads what is new, makes it live
+kumodeck test-deploy --dry-run                # builds, then checks with KUMODeck: sizes, files to upload, databases it will create
+kumodeck test-deploy                          # builds, uploads what is new, makes it live
 ```
 
 `serverRendering` is off by default: `kumodeck deploy` turns it on (with `hosting`, which it needs) for that environment and
@@ -387,7 +388,7 @@ KUMODeck builds Next.js apps with **vinext** (Cloudflare's Next.js on Vite) — 
 3. Once: `npx vinext init --platform=cloudflare --cdn-cache=none --data-cache=none --image-optimization=none`
    (all three choices are needed: without them `vinext init` stops to ask, and an agent cannot answer. KUMODeck does not
    take the CDN cache, Cloudflare Images or the KV data cache yet). It writes `vite.config.ts` and `cloudflare.config.ts`.
-4. `kumodeck deploy --env development --dry-run`, then `kumodeck deploy --env development`.
+4. `kumodeck test-deploy --dry-run`, then `kumodeck test-deploy`.
 
 `kumodeck deploy` runs `vinext check`, then `vite build` (not `npm run build`: after `vinext init` that is still
 `next build`), reads `.cloudflare/output/v0` and sends `framework: "vinext"`. It never changes the project's files.
@@ -427,7 +428,7 @@ deploying, or when the user chose OpenNext (`kumodeck deploy --next opennext`, w
    export default defineCloudflareConfig({ incrementalCache: staticAssetsIncrementalCache });
    ```
 3. In `next.config`, set `images: { unoptimized: true }` (no image optimization on KUMODeck: images are served as they are).
-4. `kumodeck deploy --env development --dry-run`, then `kumodeck deploy --env development` (add `--next opennext` when
+4. `kumodeck test-deploy --dry-run`, then `kumodeck test-deploy` (add `--next opennext` when
    vinext is installed too).
 
 - **No ISR / revalidate yet**: server-rendered pages and pages built at build time work; `revalidate` has no effect

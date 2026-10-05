@@ -147,7 +147,7 @@ Otherwise:
    - Any other folder: `kumodeck init` does not look there. It prints the two publishable keys (`--json`:
      `keys.development.publishable`, `keys.production.publishable`): put them in place of the two `REPLACE_ME` values in
      that folder's `kumo-config.js`, and set `apiUrl` to `api` from `kumo.json`. Public values only — never an `sk_…`.
-     Publish with `kumodeck deploy <folder> --env development`. Skip the `Kumo.init({ projectKey: … })` snippet and the
+     Publish with `kumodeck test-deploy <folder>`. Skip the `Kumo.init({ projectKey: … })` snippet and the
      "config push --env production, then deploy" advice it prints for such folders: the snippet puts one fixed key in the
      page (step 5 picks the key per environment), and publishing starts on development.
 5. Load it in the page, once, before the app's code needs it:
@@ -187,14 +187,14 @@ Try it locally: open `public/index.html` (`web-app`: `npm run dev`), or add `?of
 ```sh
 kumodeck config check                     # KUMODeck checks every rule first (saves nothing); fix any errors and check again
 kumodeck config push                      # the settings in kumo.config.json → development
-kumodeck deploy --env development         # uploads public/ (web-app: dist/) and prints the URL (…<slug>--dev…)
+kumodeck test-deploy                      # uploads public/ (web-app: dist/) and prints the URL (…<slug>--dev…)
 ```
 
 For Codex, show the real URL and follow `deploy` §1 and its Codex publishing flow: verify first, then open the
 human confirmation page without another conversation question. For other clients, keep the following flow.
 
 Show the URL to the user and ask them to try it (on a phone too). End with the closing line of the `deploy` Skill, §1, in
-the user's language (one line, **no question and no explanation**; `testAppNote` in `kumodeck deploy --json`):
+the user's language (one line, **no question and no explanation**; `testAppNote` in `kumodeck test-deploy --json`):
 "Test version: https://…. Say "publish it" when you want to publish." (「テスト用: https://…。公開するときは『公開して』と
 言ってください。」). Say nothing about how it differs from the published app (who can open it, that it changes, X cards,
 the small "This is a test version" bar at the top): answer only if the user asks. Details, production and rollback: the

@@ -170,7 +170,7 @@ to 2000 characters. The creator answers in the dashboard (**Players → Ban appe
 
 ## 4. Check it works
 
-1. Development copy (`kumodeck deploy --env development`): use it as a guest, store something, "Keep my data" with an email.
+1. Development copy (`kumodeck test-deploy`): use it as a guest, store something, "Keep my data" with an email.
    On a local KUMODeck server (the API is `localhost`) no email is sent: read it at `<api>/v1/dev/outbox?to=<email>` (newest
    first; `<api>` = `api` in `kumodeck whoami --json`) and open the link in it. Test accounts belong on development only.
 2. Another browser: sign in with that email → same data. `kumo.auth.player.id` is the same on both.

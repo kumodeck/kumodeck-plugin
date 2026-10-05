@@ -166,7 +166,7 @@ try {
 
 ## 5. Check it works
 
-1. Open the development copy (`kumodeck deploy --env development`, or `public/` locally with the development key), change
+1. Open the development copy (`kumodeck test-deploy`, or `public/` locally with the development key), change
    something, wait 2 s.
 2. Reload: the state is back. Open it in a second browser signed in to the same account: same state.
 3. Change it in both, a few seconds apart: the second write merges instead of overwriting (`onLoad` fires with
