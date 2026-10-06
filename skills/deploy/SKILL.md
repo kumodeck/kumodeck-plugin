@@ -260,7 +260,7 @@ All take `--env production` for the live app (default: development). `kumodeck f
 
 - The URL name (slug) is chosen at `kumodeck init` (`--slug`). Changing it later changes every URL and share link:
   do it only when the user asks, on the dashboard (the project's Hosting page); if `kumodeck help` lists a `slug` command,
-  its `check` shows first whether a name is free.
+  its `check` shows if a name is free. 30 days after deleting, anyone can take its names and get its posted links: warn first.
 - The project's name (not the URL name) appears in the subject of emails players receive: give it a clear name before
   launch with `kumodeck projects rename "<name>"` (MCP `project_rename`; `kumodeck projects list` shows it). URLs stay the same.
 - Own domain (`play.mygame.com`; the CLI adds it to production): `kumodeck features on customDomains` →
