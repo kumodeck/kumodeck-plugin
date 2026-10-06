@@ -247,7 +247,7 @@ for Functions only. The MCP tool `functions_logs` returns the same. Each line is
 | `logs_disabled` 409 | `kumodeck logs` | the live version was deployed with `--no-logs`: `kumodeck functions deploy` again without it (lines start from that deploy) |
 | `rate_limited` 429 | `kumodeck logs` | log reads are limited for all of KUMODeck together: wait `details.retryAfter` seconds (it can be 300), read once, never in a loop; narrow `--since` / `--level` / `--search` |
 | `functions_busy` 409 | `kumodeck functions deploy` | another deploy is running; retry |
-| `durable_object_removed` 409 | `kumodeck functions deploy` | keep the Durable Object binding (removing it deletes its data) |
+| `invalid_request` 400 "Durable Objects are not available yet (usage metering is not in place). Use D1, KV or R2 for now." | `kumodeck functions deploy` | Durable Objects are not available on KUMODeck yet (`kumodeck functions dev` runs them locally, the deploy refuses them; nothing was changed). Remove `durable_objects` and `migrations` from `wrangler.jsonc` and keep the shared state in D1 (one row per room or chat, read and written by your endpoints); live rooms: the `multiplayer` Skill. Tell the user in one line that this part is not available yet |
 | `functions_suspended` 403 | `kumodeck functions deploy` | `details.reason`: `balance` → the user adds credit (`kumodeck billing topup`), it resumes within a minute; anything else → the user answers KUMODeck's email |
 | `token_expired` 401 | `players.verify` → `null` | normal after 15 minutes: the page's SDK refreshes; always call `getAccessToken()` right before the request |
 | 503 from the Functions URL | users | the prepaid balance is used up: `kumodeck billing topup`; data is kept |
