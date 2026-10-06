@@ -14,7 +14,7 @@ Files next to this SKILL.md (copy them, then adapt the settings — do not rewri
 |---|---|---|
 | [leaderboard.sql](leaderboard.sql) | `functions/migrations/000N_leaderboard.sql` (next free number) | the tables and indexes |
 | [leaderboard.ts](leaderboard.ts) | `functions/src/leaderboard.ts` | the endpoints, the `BOARDS` settings, the clean-up |
-| [leaderboard-client.js](leaderboard-client.js) | `public/leaderboard-client.js` (the game's deployed folder) | the game-side calls |
+| [leaderboard-client.js](leaderboard-client.js) | next to the game code that imports it: `public/` without a build step, `src/` with one (Vite) | the game-side calls |
 
 Do not use a built-in KUMODeck ranking for this; the scores live in the creator's database.
 If the game's code already calls a ranking API from the SDK, replace those calls with the client below.
@@ -43,7 +43,9 @@ Do not pick silently. If the creator says "you choose", use limits + rate limit 
 ## 2. Server side (Functions)
 
 1. Find the Functions folder (it has `wrangler.jsonc` with a `DB` database and `src/kumo.ts`). If there is none, create
-   one in the game's folder: `kumodeck create api --template functions-starter` (no `kumodeck init` in `api/`: `kumodeck functions …`
+   one in the game's folder (the one with `kumo.json`; none yet: the `start` Skill, "Already have an app"; the game
+   already has an `api/` folder of its own: use another name, e.g. `kumodeck create scores-api --template functions-starter`):
+   `kumodeck create api --template functions-starter` (no `kumodeck init` in `api/`: `kumodeck functions …`
    uses the game's `kumo.json` above; details in the `functions-d1` Skill §2). Its README has the local setup (`.dev.vars` — the **user** puts their `sk_dev_…` there; never print it).
 2. Copy `leaderboard.sql` into `migrations/` with the next number. Keep table names, column names and types exactly as
    they are (`leaderboard.ts` depends on them). Extra tables of your own are fine.
@@ -89,10 +91,10 @@ Endpoints (all JSON; errors are `{ "error": "<code>" }`):
 
 ## 3. Game side
 
-1. Put the Functions URLs in one place, `public/kumo-config.js` (public values only), next to the existing settings:
+1. Put the Functions URLs in one place, the `kumo-config.js` the page loads (public values only), next to the existing settings:
    `functionsUrls: { development: 'https://…--dev.…', production: 'https://….…' }` (from `kumodeck functions status`, and
    `kumodeck functions status --env production` once production exists).
-2. Copy `leaderboard-client.js` into `public/` and use it after sign-in:
+2. Copy `leaderboard-client.js` next to the game code and use it after sign-in:
    ```js
    import { pageEnvironment } from './kumo-boot.js';
    import { createLeaderboard } from './leaderboard-client.js';
@@ -107,11 +109,30 @@ Endpoints (all JSON; errors are `{ "error": "<code>" }`):
      // show entries (rank, name, score) and mine.rank / mine.total
    } catch (e) { console.warn('leaderboard unavailable', e); }        // never block play on the leaderboard
    ```
+   With a build step (Vite), `kumo-boot.js` is not imported in the source: use `boot.pageEnvironment()` from the module the
+   page loaded at run time (the `start` Skill, "Already have an app" step 5).
 3. Names come from the player's display name when they submit. Let players set one (`kumo.auth` / the game's own UI)
    so the list does not fill up with empty names; render names as text, never as HTML.
 4. The game's own KUMODeck URLs (development, production, its verified custom domain) and `web.allowedOrigins` may call the
    Functions: KUMODeck sets them (`KUMO_ALLOWED_ORIGINS`) and updates them when those change. If it could not,
    `kumodeck functions status` says to deploy again. Any other site needs its origin in `ALLOWED_ORIGINS` in `wrangler.jsonc` `vars`.
+
+5. **Scores from before the leaderboard** (the game was played without it):
+   - A best score kept on the player's device (`localStorage`, a save): it was never checked, and anyone can type a
+     number there, so do not send it to the board. Keep showing it as "Your best on this device" next to the board; the
+     board fills with scores the server checked.
+   - Scores the game already kept on a server of its own: bring them in once as all-time rows, after the leaderboard
+     migration, from an export of the old table (one row per old score). They show under their old names and are not
+     tied to anyone's account here (`imported:` ids never match a user), so they cannot be improved or deleted by a
+     player; new scores rank among them:
+     ```sql
+     -- functions/migrations/000N_import_scores.sql (the number after the leaderboard one)
+     INSERT OR IGNORE INTO leaderboard_scores (board, period, period_key, player_id, display_name, score, achieved_at) VALUES
+       ('main', 'all', 'all', 'imported:42', 'Mika', 1200, 1759708800000),
+       ('main', 'all', 'all', 'imported:43', 'Ren', 950, 1759712400000);
+     ```
+     `board` is a key of `BOARDS`; `score` a whole number in the board's direction; `achieved_at` Unix milliseconds.
+     Then `kumodeck functions db migrate DB` as usual.
 
 ## 4. Notes for the creator
 

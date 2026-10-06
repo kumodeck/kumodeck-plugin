@@ -82,11 +82,11 @@ forbidden. Permission to run a command and KUMODeck's confirmation are separate;
 kumodeck whoami           # logged in (exit code 3 = the user runs `kumodeck login` themselves), balance, linked project
 ```
 
-- The folder has `kumo.json` (from `kumodeck init`). If not, run `kumodeck init` in the project folder (or pass `--project <slug>`).
-- `public/kumo-config.js` has real publishable keys. `kumodeck deploy` warns when it still says `REPLACE_ME` or has no key
+- The folder has `kumo.json`. If not, run `kumodeck init` in the project folder (or pass `--project <slug>`); an app not made from a template: the `start` Skill, "Already have an app?".
+- The page's `kumo-config.js` (templates: `public/`) has real publishable keys. `kumodeck deploy` warns when it still says `REPLACE_ME` or has no key
   for the environment: then the page runs offline. Fix: `kumodeck init` in the project folder.
-- The folder to upload has `index.html` at its root. Templates upload `public/` (saved as `deployDir` in `kumo.json`).
-  A project with a build step (Vite etc.): build first, then `kumodeck test-deploy dist`.
+- The folder to upload has `index.html` at its root. With no folder named, deploy uploads `deployDir` from `kumo.json`
+  (templates: `public/`; Vite: `dist/`), else `dist/`. Build first; another folder: name it (`kumodeck test-deploy build`, `.`).
 - **A server-rendered app** (Astro with its Cloudflare adapter, SvelteKit, Nuxt, React Router framework mode, TanStack Start,
   Hono, SolidStart, Next.js with vinext or OpenNext): do not pass a folder. Run `kumodeck deploy` in the project folder and read §9 first.
 
@@ -153,9 +153,9 @@ KUMODeck MCP tools only. The same environments, URLs and confirmations as above 
 **Use `publish_game` alone** when the user asks to make and publish (or update) a game or app, and do not call other tools
 for it. Web chats ask the user about each new tool once (「このツールを使ってよいですか？」): every step and follow-up here
 is a call to `publish_game`, so the user is asked once. The user wants it all done in the chat: no downloads, no dropping
-files, no settings to change (the upload page in step 5 is the only exception, and only for very big games).
+files, no settings to change (the upload page in step 6 is the only exception, and only for very big games).
 
-1. **New game: prepare first.** `publish_game` with `name` (the real game name), `features` (what the game uses: `saves`,
+1. **New game (also one made elsewhere: keep its code, add to it): prepare first.** `publish_game` with `name`, `features` (`saves`,
    `multiplayer`, `realtimeChannels`, `emailLogin`, `stats` …) and `prepare: true`. It makes the project, turns on hosting
    and those features in the test app (and what they need, listed in `alsoTurnedOn`), and returns:
    - `apiUrl` and `keys` (`testApp` for the test app, `everyone` for the published app; shown only once). Write them into
@@ -175,12 +175,13 @@ files, no settings to change (the upload page in step 5 is the only exception, a
    merged into the current settings (objects merge, lists replace), checked like a push, and refused with the path if
    something is wrong (nothing changes).
 4. **Production (everyone).** Same rule as §1: only when the user says "publish it" / 「公開して」 (or the like) after
-   seeing the test app. `publish_game` with `projectId`,
-   `everyone: true` and the files (or the last part) uploads first and then asks the user once (a confirmation in the chat,
-   or a link to press) before people see it; hosting, the features on in the test app and `config` are in that same
-   confirmation. On `approval_required` with a `confirmUrl`: open it / show it as in §5, then call `publish_game` with
-   `pendingActionId` (again right away while it is still waiting).
-5. **Last resort — a game too big to send in parts** (well over several MB of images or sounds): call `publish_game`
+   seeing the test app. `publish_game` with `projectId`, `everyone: true` and no files publishes what is on the test app as it is
+   (files sent go over it) and asks the user once (a confirmation in the chat, or a link to press) before people see it;
+   hosting, the features on in the test app and `config` are in that same confirmation. On `approval_required` with a
+   `confirmUrl`: open it / show it as in §5, then call `publish_game` with `pendingActionId` (again right away while waiting).
+5. **A game published here before (even in another chat):** `projectId` (`projects_list`) + `features` + `prepare: true` give its
+   keys and steps; `read: true` gives its code. Change that code (do not start over) and send only changed or new files: the others stay.
+6. **Last resort — a game too big to send in parts** (well over several MB of images or sounds): call `publish_game`
    without files. It returns `uploadAt` (a page) and `tellTheUser`: make a zip with `index.html` at the top, give the user a
    download link, and say "Download the zip, then drop it on this page:" 「zip をダウンロードして、このページに落として
    ください」. Then call `publish_game` again right away with `projectId` and `waitToken` until it returns the URL.
@@ -281,9 +282,9 @@ All take `--env production` for the live app (default: development). `kumodeck f
 | Code / message | Fix |
 |---|---|
 | 402 `balance_due` | Prepaid credit is used up. Tell the user, run `kumodeck billing topup` (they pay on Stripe's page), then run the same deploy again |
-| "Directory not found" / "has no index.html at its root" (exit 2), 400 `missing_index_html` | Wrong folder: deploy the one with `index.html` at its root (`kumodeck deploy public`, `kumodeck deploy dist`) |
+| "Directory not found" / "has no index.html at its root" (exit 2), 400 `missing_index_html` | Wrong folder: deploy the one with `index.html` at its root (`kumodeck deploy public`, `kumodeck deploy dist`, `kumodeck deploy .` for a page at the top of the app's folder). No `dist/` yet: build first |
 | 413 `too_many_files` (over 100,000 files), 413 `file_too_large` (a file over 100 MB; `details.limit` has the exact limit, `details.files` lists them) | These are the same as Cloudflare's own limits (100,000 files per version) — there is no total-size limit. Over 100,000 files usually means raw sources or `node_modules` got into the folder: deploy the build output. A file over 100 MB: compress (`.ogg`, `.webm`) or split it; the `limits` Skill has the rest |
-| `file_changed`, 400 `hash_mismatch` | A file changed during the upload (a build watcher?): stop the watcher, deploy again |
+| `file_changed`, 400 `hash_mismatch` | A file changed during the upload (a build watcher?): stop the watcher, deploy again. `kumo.config.json changed` while publishing the app's own folder (`.`): deploy turned `hosting` on in it: run the same deploy again (next time `kumodeck features on hosting` first) |
 | `secret_like_content` (CLI, before upload), 422 `secret_like_content` (server) | A file sent to the browser contains a key (`details.findings[].what` says which, in plain words: a key the user saved, a known service's secret key, or long random text after key / secret / token / password; file and line; the value is not shown). Nothing was published. Tell the user what and where. Move the code that uses the key into the project's Functions and read the key there; the user enters it in the chat box (`INDEX.md` → "Asking for a key": `functions_secret_set` without a value) or with `kumodeck functions secret put NAME` in their terminal (never ask them to paste the key into the chat). Rebuild, deploy again. Only if the user says the value is meant to be public (a Maps key restricted to their site, a Supabase anon / publishable key): `kumodeck deploy --allow-secret-like` |
 | 429 `too_many_pending_deployments` | 20 unfinished deploys: they expire after 24 hours; finish or wait |
 | 403 `feature_disabled` | The hint prints the exact `kumodeck features on … && kumodeck config push --env …` line. (`kumodeck deploy` turns `hosting` and `serverRendering` on by itself) |

@@ -1,5 +1,6 @@
 /**
- * Game-side client for the leaderboard in your Functions (leaderboard.ts). Copy to public/leaderboard-client.js.
+ * Game-side client for the leaderboard in your Functions (leaderboard.ts). Copy it next to the game code that imports
+ * it (public/ without a build step, src/ with one such as Vite).
  * No dependencies. Sends the signed-in player's token so your server knows who is submitting.
  *
  *   import { createLeaderboard } from './leaderboard-client.js';

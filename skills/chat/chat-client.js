@@ -1,6 +1,7 @@
 /**
  * Game-side chat: a realtime channel (kumo.realtime) for live messages + your Functions (chat.ts) for checks and history.
- * Copy to public/chat-client.js. No dependencies.
+ * Copy it next to the game code that imports it (public/ without a build step, src/ with one such as Vite).
+ * No dependencies.
  *
  *   import { openChat } from './chat-client.js';
  *   const chat = await openChat({

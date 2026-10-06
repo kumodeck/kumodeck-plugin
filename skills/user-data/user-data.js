@@ -1,7 +1,7 @@
 /**
  * user-data.js — one piece of per-user data (a game's progress, an app's settings or draft, a profile) that follows the
- * user to every device and never blocks the page. From the `user-data` Skill. Copy it to `public/`, then set the options;
- * keep the behaviour described here. (KUMODeck's API calls users "players": `kumo.saves` stores per-user JSON "slots".)
+ * user to every device and never blocks the page. From the `user-data` Skill. Copy it next to the page code that imports
+ * it (`public/` without a build step, `src/` with one), then set the options; keep the behaviour described here. (KUMODeck's API calls users "players": `kumo.saves` stores per-user JSON "slots".)
  *
  *   import { createUserData } from './user-data.js';
  *   const data = createUserData({ kumo, slot: 'settings', initial: { theme: 'light', favorites: [] }, merge });
@@ -28,6 +28,13 @@
  *     WHY: on a shared device (a family tablet, a school PC) the next person must not see the previous user's data.
  *     Until 2026-09-28 the old state stayed on screen and was silently no longer saved (found while testing with an AI agent).
  *     `onSignOut: 'keep'` restores that old behaviour (a page that reloads itself on sign-out does not need it).
+ *   - The app already kept its data in the browser before (its own localStorage key, from before KUMODeck was added):
+ *     `existing: () => oldDataOrNull` hands it over. The first load in this browser takes it, merges it with the cloud copy
+ *     (`merge(cloud, old)`) when the account already has one, and sends it. It is taken once per browser (then the cloud
+ *     copy is the one that counts) and only for the user signed in at that moment. The old key is never deleted.
+ *     WHY (2026-10-06): most apps get cloud saves added after people already played them. Without this the page starts
+ *     from `initial` and the progress looks lost; reading the old key in `initial` instead would ignore it whenever the
+ *     account already has a cloud copy, and would hand it to every user who signs in on this browser.
  *   - Never throws from `update`; `load` and `flush` do not throw on connection or server errors either (the page keeps
  *     working on the local copy). Read `status` / `lastError`, or listen with `onStatus`.
  *
@@ -72,6 +79,7 @@ const clone = (v) => (v === undefined ? v : typeof structuredClone === 'function
  * @param {*|(() => *)} opts.initial    the state of a new user (a value or a function returning one)
  * @param {(cloud: *, local: *) => *} [opts.merge]  combine two versions (default: keep the local one)
  * @param {'keep-account'|'keep-device'|'merge'|((account: *|null, device: *) => *)} [opts.onSignIn]
+ * @param {() => *} [opts.existing]  the app's data from before cloud saves (e.g. read its old localStorage key); null = none
  * @param {'reset'|'keep'} [opts.onSignOut]  after sign-out: 'reset' = show `initial` (default) / 'keep' = leave the state on screen
  * @param {number} [opts.delayMs]       wait after the last change before writing (default 2000)
  * @param {number} [opts.retryMs]       wait before retrying after a connection / rate-limit error (default 15000)
@@ -86,6 +94,7 @@ export function createUserData(opts) {
     merge = (_cloud, local) => local,
     onSignIn = 'keep-account',
     onSignOut = 'reset',
+    existing = null,
     delayMs = 2000,
     retryMs = 15000,
     storage = browserStorage(),
@@ -131,6 +140,27 @@ export function createUserData(opts) {
       storage?.setItem(localKey(userId), JSON.stringify({ data: state, dirty, at: Date.now() }));
     } catch {
       /* storage full or blocked: the cloud copy still works */
+    }
+  };
+
+  // ---- the app's data from before cloud saves (`existing`): taken once per browser.
+  // The mark is per prefix + slot (not per user): the old key belongs to this browser, not to one account.
+  const importedKey = `${prefix}:${slot}:imported`;
+  const takeExisting = () => {
+    if (typeof existing !== 'function') return null;
+    try {
+      if (storage?.getItem(importedKey)) return null;
+      const old = existing();
+      return old === undefined || old === null ? null : clone(old);
+    } catch {
+      return null; // a broken old save: start without it (the old key stays as it is)
+    }
+  };
+  const markImported = () => {
+    try {
+      storage?.setItem(importedKey, String(Date.now()));
+    } catch {
+      /* blocked storage: it may be offered again next time; merge keeps that harmless for max / union merges */
     }
   };
 
@@ -225,25 +255,35 @@ export function createUserData(opts) {
     off = false;
     const local = readLocal(userId);
     loaded = true;
+    const old = takeExisting();
+    // fold the old data into what this page would show otherwise (base null = nothing yet)
+    const withOld = (base) => (old === null ? base : base === null ? old : merge(clone(base), old));
     if (!kumo || !userId) {
-      state = local ? local.data : fresh();
-      dirty = !!(local && local.dirty);
+      // no user yet: show the old data, but keep offering it until a user's copy holds it (no mark here)
+      state = local ? local.data : old ?? fresh();
+      dirty = !!(local && local.dirty) || (!local && old !== null);
       setStatus('offline');
       return state;
     }
     const cloud = await readCloud();
     if (cloud === undefined) {
       // could not reach the cloud: work on this browser's copy and send it later
-      state = local ? local.data : fresh();
-      dirty = !!(local && local.dirty);
+      state = withOld(local ? local.data : null) ?? fresh();
+      dirty = !!(local && local.dirty) || old !== null;
+      if (old !== null) {
+        writeLocal(); // the user's own copy now holds it (dirty): the next load sends it
+        markImported();
+      }
       if (dirty) schedule(retryMs);
       return state;
     }
-    if (local && local.dirty) {
-      // changes from last time that never reached the cloud (closed tab, no connection)
-      state = cloud ? merge(clone(cloud.data), local.data) : local.data;
+    if ((local && local.dirty) || old !== null) {
+      // changes from last time that never reached the cloud (closed tab, no connection), and/or the app's old data
+      const base = local && local.dirty ? (cloud ? merge(clone(cloud.data), local.data) : local.data) : cloud ? cloud.data : null;
+      state = withOld(base) ?? fresh();
       dirty = true;
       writeLocal();
+      if (old !== null) markImported();
       setStatus('saving');
       schedule(0);
     } else {

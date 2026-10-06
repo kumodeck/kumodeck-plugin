@@ -1,6 +1,7 @@
 /**
- * Game-side helper for online play with KUMODeck rooms (kumo.rooms). Copy to public/multiplayer-client.js
- * (the game's deployed folder). No dependencies; no server code: rooms run on KUMODeck once `multiplayer` is on.
+ * Game-side helper for online play with KUMODeck rooms (kumo.rooms). Copy it next to the game code that imports it
+ * (public/ in a game without a build step, src/ in one with a build step such as Vite). No dependencies; no server
+ * code: rooms run on KUMODeck once `multiplayer` is on.
  *
  *   import { playOnline, resumeAfterReload, warmUpOnline } from './multiplayer-client.js';
  *   // page load, before showing the menu: back in the match after a reload of THIS tab (host or guest), else null
@@ -18,7 +19,7 @@
  *     onStatus: (status) => …,                // 'matching' | 'playing' | 'reconnecting' | 'ended:<reason>'
  *     onPresence: ({ playerId, kind, reason }) => … // someone dropped / came back / left: show it at once (below)
  *   });
- *   online.send('move', { x, y });            // to everyone else (≤ 16 KB, ≤ 30 messages a second)
+ *   online.send('move', { x, y });            // to everyone else (within the mode's limits: the Skill's section 4)
  *   if (online.isHost) await online.start();  // host only: lock the room so quick match stops adding players
  *   await online.leave();
  *
@@ -127,8 +128,8 @@ function wire(kumo, room, { onMessage, onPlayers, onState, onStatus, onWarning, 
     get players() { return room.players; },
     get state() { return room.state; },
     send: (type, data, opts) => room.send(type, data, opts),     // opts.to = [playerId] for one player
-    setState: (patch) => room.setState(patch),                   // shared, ≤ 64 KB in total, null deletes a key
-    setMyState: (patch) => room.setMyState(patch),               // mine, ≤ 8 KB (name, color, ready…)
+    setState: (patch) => room.setState(patch),                   // shared by everyone, null deletes a key
+    setMyState: (patch) => room.setMyState(patch),               // mine, seen by everyone (name, color, ready…)
     start: () => room.lock(true),                                // host only (host_only otherwise)
     leave: () => room.leave()
   };

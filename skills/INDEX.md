@@ -1,7 +1,7 @@
 # Skills in this project
 
 Step-by-step guides for working on this project (a web app or game) with KUMODeck: `start`, `deploy` and `troubleshoot` get it
-from nothing to a live URL and past errors, and `limits` says what can stop it (size, count, speed, prepaid balance) and the way around; `user-data`, `user-login` and `functions-d1` wire
+from nothing (or from the app or game the user already has) to a live URL and past errors, and `limits` says what can stop it (size, count, speed, prepaid balance) and the way around; `user-data`, `user-login` and `functions-d1` wire
 per-user data, sign-in and the user's own server code and database into the app or game; `multiplayer` makes a game
 playable online with friends on KUMODeck's rooms (KUMODeck runs the rooms; the game logic stays in the game); the
 others are recipes for building systems (for games: rankings and the like) in **the user's own** database and Functions.
@@ -17,7 +17,7 @@ from top to bottom and follow it. The other files in that folder are the code to
 
 | Skill | Read | Use it when the user asks for |
 |---|---|---|
-| start | [`start/SKILL.md`](start/SKILL.md) | a new web app or game on KUMODeck, "Build X on KUMODeck" (the request copied from the KUMODeck dashboard), getting from nothing to a working URL |
+| start | [`start/SKILL.md`](start/SKILL.md) | a new web app or game on KUMODeck, "Build X on KUMODeck" (the request copied from the KUMODeck dashboard), getting from nothing to a working URL; adding KUMODeck to an app or game the user already has (one HTML file, Vite or another build), in its own folder without rebuilding it ("Already have an app?") |
 | deploy | [`deploy/SKILL.md`](deploy/SKILL.md) | deploy, publish (「公開して」), ship, go live, the app's or game's URL, roll back a release, Functions deploys, the URL name or their own domain |
 | troubleshoot | [`troubleshoot/SKILL.md`](troubleshoot/SKILL.md) | an error from `kumodeck` or the app or game (402, 403 feature_disabled, email_unverified, origin_not_allowed, CORS…), balance, usage and history |
 | multiplayer | [`multiplayer/SKILL.md`](multiplayer/SKILL.md) | make it playable online (「オンラインで対戦できるようにして」): asks one short question set with prices, then picks the setup; online multiplayer, versus / co-op / party modes, quick match, room codes and invite links, reconnects |
@@ -76,7 +76,9 @@ for it.** The chat asks the user about each new tool once; every step and follow
 the user is asked once. The user wants it all done in the chat: never make them download, drop files or change settings
 unless the steps below say so.
 
-1. **New game, before writing code:** `publish_game` with `name`, the `features` the game uses (`saves`, `multiplayer`,
+1. **New game, before writing code** (also a game the user already has, made earlier in the chat or pasted in: keep its
+   code as it is, and add only `kumo-boot.js`, `kumo-config.js` and the loader from the `start` Skill, "Already have an
+   app?", step 5): `publish_game` with `name`, the `features` the game uses (`saves`, `multiplayer`,
    `emailLogin`, …) and `prepare: true`. It makes the project, turns them on in the test app and returns `apiUrl`, the
    `keys` (shown only once: keep them) and `guides` — the how-to steps and the files to copy for those features (no need
    to look anything up). **Use `apiUrl` and the keys exactly as returned (e.g. in `kumo-config.js`); never guess them or

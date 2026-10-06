@@ -6,7 +6,7 @@ description: Add user sign-in to this app or game with kumo.auth — use it as a
 # User sign-in with `kumo.auth`
 
 People start using the app or game **before** they sign up: `Kumo.init()` (inside `connectKumo()` in
-`public/kumo-boot.js`) creates a guest on the first visit and resumes it after that. When their data matters to them,
+`kumo-boot.js`) creates a guest on the first visit and resumes it after that. When their data matters to them,
 they **add** a sign-in method to the same user — email + password, Google, Discord, Apple or X — and keep everything
 (their stored data). On another device they sign in with that method and get the same user back.
 
@@ -22,7 +22,7 @@ File next to this SKILL.md (copy it; build the screen in the project's own style
 
 | File | Copy to | What it is |
 |---|---|---|
-| [user-account.js](user-account.js) | `public/user-account.js` | account-screen helpers: keep data (link), sign in, remove a method, reset, ban appeal, messages |
+| [user-account.js](user-account.js) | next to the page code that imports it: `public/` without a build step, `src/` with one (Vite) | account-screen helpers: keep data (link), sign in, remove a method, reset, ban appeal, messages |
 
 The code and the screens are the creator's. KUMODeck keeps the sessions, passwords (hashed) and provider logins safe.
 
@@ -85,6 +85,18 @@ URLs are allowed automatically. Push again after changing it.
 
 The page has `kumo` from `connectKumo()` (null offline: hide the account button then).
 No `kumo-boot.js` (the app was not made with `kumodeck create`)? Connect it first: the `start` Skill, "Already have an app".
+
+**The app already has a name or accounts of its own** (it was built before sign-in was added):
+- A name the user typed before (kept in the browser): make it their display name once, while they have none. A name
+  the server refuses keeps the automatic one; the app goes on:
+  ```js
+  const old = (localStorage.getItem('my-app-name') ?? '').trim();          // the app's own key
+  if (kumo.auth.player && !kumo.auth.player.displayName && old) await kumo.auth.setDisplayName(old.slice(0, 32)).catch(() => {});
+  ```
+- Its own sign-in (its own server, another service): do not remove it or move its users silently. Ask the creator once
+  whether this sign-in replaces it or sits next to it. Passwords cannot be copied over (they are kept hashed where they
+  are now): people add an email here with `registerWithEmail` from the guest they already are, so what they did on this
+  device stays theirs.
 
 ```js
 import { accountSummary, registerWithEmail, signInWithEmail, continueWith, removeMethod, message } from './user-account.js';

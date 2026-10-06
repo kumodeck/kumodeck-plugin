@@ -13,7 +13,7 @@ File next to this SKILL.md (copy it, then adapt — do not rewrite it from scrat
 
 | File | Copy to | What it is |
 |---|---|---|
-| [multiplayer-client.js](multiplayer-client.js) | `public/multiplayer-client.js` (the game's deployed folder) | `resumeAfterReload()` (page load: back in the match after a reload) and `playOnline()` (a friend's code, a private room or quick match); events, who dropped, reconnects, warnings |
+| [multiplayer-client.js](multiplayer-client.js) | next to the game code that imports it: `public/` without a build step, `src/` with one (Vite) | `resumeAfterReload()` (page load: back in the match after a reload) and `playOnline()` (a friend's code, a private room or quick match); events, who dropped, reconnects, warnings |
 
 ## 0. Ask once, in plain words, with the price first
 
@@ -141,8 +141,9 @@ That is still the one round.
 
 ## 2. Game side
 
-1. Copy `multiplayer-client.js` into `public/`. `kumo` comes from `connectKumo()` (`kumo-boot.js`); players are signed in
-   as guests automatically, which is enough for rooms.
+1. Copy `multiplayer-client.js` next to the game code that imports it. `kumo` comes from `connectKumo()` (`kumo-boot.js`;
+   a game not made with `kumodeck create`: the `start` Skill, "Already have an app"); players are signed in as guests
+   automatically, which is enough for rooms. A game made for one player first: step 11.
 2. On page load, before showing the menu, go back to a match this tab was in (a reload in the middle of a match —
    host or guest, including a guest who came by invite link):
    ```js
@@ -224,6 +225,24 @@ That is still the one round.
 10. **Test with two players**: deploy to development (`kumodeck test-deploy`), open the URL in two tabs and add
    `?player=2` to the second (templates give that tab its own guest). Without the templates' `kumo-boot.js`, use a second
    browser or a private window: one browser profile is one player, and a second tab replaces the first one's connection.
+11. **A game made for one player** (against the computer: a race, a duel, a board game with a computer side). Keep the
+   single-player game as it is (it stays the offline path) and change only where the other side's moves come from:
+   - Find the line that asks the computer for its move and use the other player's last input there instead. The game's
+     rules, its loop and its drawing stay:
+     ```js
+     // once a frame, in the host's loop (the same step() the single-player game calls)
+     const rival = online ? friendInput : cpuThrottle(race);    // friendInput = the last 'input' message
+     step(race, { player: myInput, cpu: rival });
+     ```
+   - One page runs the rules: the host's. It sends the result 10–20 times a second (`online.send('race', race)`); the
+     friend's page sends only its own input (`online.send('input', { throttle })`) and draws the race it receives. The
+     friend sits in the seat the computer had: draw "you" and "the other player" from that seat.
+   - The end goes in shared state (`online.setState({ winner })`), so both pages, and one that reconnects, show the same
+     result.
+   - `onPresence` `disconnected`: pause the host's loop; `left`: end with a plain message ("The other player left") and
+     offer the computer again.
+   - The single-player save and personal best stay as they are; an online result that must count (a ranking, a prize)
+     goes through the game's Functions + D1 (section 3).
 
 ## 3. What the server guarantees, and what it does not
 

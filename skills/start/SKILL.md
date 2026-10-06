@@ -1,6 +1,6 @@
 ---
 name: start
-description: Start here to make a new web app or game with KUMODeck as its backend and publish it — from a request like 'Build "X" on KUMODeck. Use KUMODeck for sign-in, the database and publishing.' (or 'KUMODeckで『X』を作って。ログインとデータベースと公開はKUMODeckで。') to a working URL. Picks a template, connects the folder to KUMODeck (account, email confirmation, prepaid credit), makes a first working version and publishes it to the test URL. Use when the user asks to build a web app, a game, a tool or any new project on KUMODeck ("Build a web app / a game / X on KUMODeck", 「KUMODeckでアプリを作って」), or pastes the request copied from the KUMODeck dashboard.
+description: Start here to make a new web app or game with KUMODeck as its backend and publish it — from a request like 'Build "X" on KUMODeck. Use KUMODeck for sign-in, the database and publishing.' (or 'KUMODeckで『X』を作って。ログインとデータベースと公開はKUMODeckで。') to a working URL. Picks a template, connects the folder to KUMODeck (account, email confirmation, prepaid credit), makes a first working version and publishes it to the test URL. Use when the user asks to build a web app, a game, a tool or any new project on KUMODeck ("Build a web app / a game / X on KUMODeck", 「KUMODeckでアプリを作って」), or pastes the request copied from the KUMODeck dashboard. Also adds KUMODeck to an app or game the user already has (made by hand, with another tool or in a web chat, one HTML file, Vite or another build) in its own folder, without rebuilding it ("use KUMODeck for this game", 「このゲームにKUMODeckをつないで」).
 ---
 
 # Start a web app or game on KUMODeck
@@ -15,7 +15,8 @@ Order of work (each step below says how to check it is done — skip steps that 
 2. Check the tools (Node, the `kumodeck` CLI)
 3. Account, email confirmation, prepaid credit — the user does the parts that need their password or card
 4. Create the project folder from a template and link it to a new KUMODeck project
-   (the user already has an app that was not made with `kumodeck create`: "Already have an app?" below instead)
+   (the user already has an app or game, made without `kumodeck create`: skip steps 1, 4 and 5 and follow "Already have an
+   app?" below in the app's own folder; never start it over from a template)
 5. Make the first version of their app or game
 6. Publish to the development URL, show it to the user
 7. Next steps: which Skill to use for what
@@ -122,45 +123,78 @@ Then read `AGENTS.md` in the new folder: it has the rules for this project and o
 
 ## Already have an app? (not made with `kumodeck create`)
 
-Connect the app's own folder. Do not make a template project somewhere else to copy from, and never type keys by hand
-into a file that `kumodeck init` can fill.
+Many users come with an app or game that already works: made by hand, with another tool, in a web chat, with or
+without a build step, sometimes one HTML file. Add KUMODeck **to that app, in its own folder**:
 
-If `kumodeck help` lists `connect`, run `kumodeck connect` in the app's folder and follow what it prints (it does the steps below).
-Otherwise:
+- Do not rebuild it from a template, make a template project somewhere else to copy from, or move or rename its files.
+- Keep what it already has: its saves (`localStorage`), its own sign-in, its state and its game loop stay as they are.
+  KUMODeck is added next to them. Move data over (an old `localStorage` save → a cloud save) only as the `user-data`
+  Skill says.
+- Never type keys by hand into a file that `kumodeck init` can fill.
 
-1. Steps 2–3 first (tools, logged in, email confirmed, prepaid credit), and ask the app's name if you do not know it.
-2. Find the folder that gets published: the one with the app's `index.html` — `public/`, the app's folder itself, or
-   the build output (`dist/`). With a build step, use the folder the build copies unchanged (Vite: `public/`).
-3. Copy [kumo-boot.js](kumo-boot.js) and [kumo-config.js](kumo-config.js) (next to this SKILL.md) into that folder,
-   unchanged. `kumo-config.js` still says `REPLACE_ME`: that is the mark `kumodeck init` looks for.
-   In a web chat (no terminal), `publish_game` makes the project: write `apiUrl` and the two keys from its result into
-   `kumo-config.js` exactly as returned (or leave `REPLACE_ME` in the first call that makes the game: it fills them in).
-   Never guess the address or the keys, and never copy them from an old file or another project.
-4. In the app's folder: `kumodeck init --name "<App name>"` creates the KUMODeck project (without `--name` it asks, and lists the
-   user's projects to pick one; `--project <slug>` links an existing one). `kumo.json` there already:
-   `kumodeck init --force --project <slug>`.
-   - Published folder = `public/` with `index.html`: `kumodeck init` writes the publishable keys and the API URL into
-     `public/kumo-config.js` ("Wrote the publishable keys…") and saves `deployDir: "public"`. Done.
-   - Linking an existing project (`--project`) writes only the development key and never touches production (no
-     confirmation link). The first `kumodeck deploy --env production` makes the production key and writes it into the
-     `kumo-config.js` it publishes (`--json`: `productionKeyWritten`).
-   - Any other folder: `kumodeck init` does not look there. It prints the two publishable keys (`--json`:
-     `keys.development.publishable`, `keys.production.publishable`): put them in place of the two `REPLACE_ME` values in
-     that folder's `kumo-config.js`, and set `apiUrl` to `api` from `kumo.json`. Public values only — never an `sk_…`.
-     Publish with `kumodeck test-deploy <folder>`. Skip the `Kumo.init({ projectKey: … })` snippet and the
-     "config push --env production, then deploy" advice it prints for such folders: the snippet puts one fixed key in the
-     page (step 5 picks the key per environment), and publishing starts on development.
-5. Load it in the page, once, before the app's code needs it:
+Work in the app's folder (the one with its `package.json`; without a build step, the one with its `index.html`):
+
+1. If `kumodeck help` lists `connect`, run `kumodeck connect`. It logs in and adds the notes and Skills for agents
+   (`AGENTS.md`, `CLAUDE.md`, `GEMINI.md`, `.claude/skills/`, `.agents/skills/`; an `AGENTS.md` that is already there
+   keeps its text and gets one more section). It does not change the app's code and does not make the project: the
+   next steps do. Then sections 2–3 above for what is missing (email confirmed, prepaid credit). Ask the app's name if you
+   do not know it.
+2. Find the app's shape in this table. It says where the two files of step 3 go and which folder is published:
+
+   | The app | Copy the two files into | Publish with |
+   |---|---|---|
+   | `index.html` at the top of the folder, no build step (also a single HTML file) | the folder itself, next to `index.html` | `kumodeck test-deploy .` |
+   | a site in `public/` (`public/index.html`), no build step | `public/` | `kumodeck test-deploy` (`kumodeck init` saves `public`) |
+   | Vite (`index.html` and `package.json` at the top) | `public/` (make it if missing; Vite copies it into `dist/` unchanged) | `npm run build`, then `kumodeck test-deploy` (`kumodeck init` saves `dist`) |
+   | Create React App, or another build that writes `build/` | `public/` | build, then `kumodeck test-deploy build`; also set `"deployDir": "build"` in `kumo.json` (`kumodeck init` saves `public`) |
+   | another build | the folder the build copies unchanged into its output | build, then `kumodeck test-deploy <output folder>` |
+   | a server-rendered app (Next.js, Astro with its Cloudflare adapter, SvelteKit, Nuxt…) | none | the `deploy` Skill, §9 |
+
+   `kumodeck test-deploy .` publishes every file in the folder except hidden ones (`.kumo/`, `.claude/`, `.git/`…) and
+   `node_modules/`. That includes `AGENTS.md`, `CLAUDE.md`, `GEMINI.md`, `kumo.json` and `kumo.config.json`: none of them
+   holds a secret, the secret keys stay in `.kumo/`. If the folder also holds files that must not be public (notes,
+   drafts), ask the user before you publish it.
+3. Copy [kumo-boot.js](kumo-boot.js) and [kumo-config.js](kumo-config.js) (next to this SKILL.md) into the folder from
+   the table, unchanged. `kumo-config.js` still says `REPLACE_ME`: that is the mark `kumodeck init` looks for.
+   A web chat (no terminal): see "No terminal and no files" in `INDEX.md`; `publish_game` makes the project, and you
+   write `apiUrl` and the two keys from its result into `kumo-config.js` exactly as returned. Never guess the address or
+   the keys, and never copy them from an old file or another project.
+4. `kumodeck init --name "<App name>"` in the app's folder makes the KUMODeck project and writes the keys and the
+   address into that `kumo-config.js` (`--json`: `gameConfig.status` is `written`). It saves the folder to publish as
+   `deployDir` in `kumo.json` when it can tell (`public`, or `dist` for Vite). `--project <slug>` links a project that
+   already exists instead (it writes the key for your test app; the first `kumodeck deploy --env production` adds the
+   published app's key). The app's folder has `kumo.json` already: `kumodeck init --force --project <slug>`.
+   - `gameConfig` is `null` (the page is somewhere `kumodeck init` does not look): it prints the whole `kumo-config.js`
+     to save next to the page. Use it instead of the copy from step 3.
+   - Skip the `<script>` lines it prints for such folders: step 5 is the one the other Skills expect.
+5. Load it in the page, once, inside `<head>` of `index.html` (and of every other page that uses KUMODeck):
    ```html
    <script src="kumo-config.js"></script>
    <script type="module">
-     import { connectKumo } from './kumo-boot.js';
-     const { kumo } = await connectKumo();   // null offline (or before `kumodeck init`): the app must still work
-     startApp(kumo);                         // hand it to the app's own code
+     // KUMODeck joins in the background. The app starts as before and never waits for it.
+     // A URL, not `import './kumo-boot.js'`: Vite and other build tools refuse to bundle a file from public/.
+     window.kumoReady = import(/* @vite-ignore */ new URL('kumo-boot.js', document.baseURI).href)
+       .then((boot) => boot.connectKumo({ namespace: 'space-dodge' }))
+       .then((r) => r.kumo, () => null);
    </script>
    ```
-6. `kumodeck features on <name>` for what the app uses (it creates `kumo.config.json`), then publish to development
-   (section 6) and continue with the other Skills (they all expect `connectKumo()` from `kumo-boot.js`).
+   Put the app's URL name (slug) as `namespace`: KUMODeck's sign-in then keeps its own `localStorage` entries under that
+   prefix, apart from the app's. Do not change the app's own code to start it: where the app needs KUMODeck (saving,
+   sign-in…), it reads `const kumo = await window.kumoReady;` and checks `if (kumo)` first (it is `null` offline, with
+   `?offline=1`, or before `kumodeck init`). When another Skill says "`kumo` from `connectKumo()`", it means this.
+   TypeScript: `(window as any).kumoReady`. A page in a subfolder: point both paths at the files from step 3.
+   **Copying the two files is not enough: nothing reads them until these lines are in the page.** Without them the app
+   still runs, but alone and offline (no saves, no sign-in, no multiplayer) and no error says so. Check before step 6:
+   the page you publish has `<script src="kumo-config.js">` and `kumoReady` (with a build: in the built `index.html`,
+   e.g. `dist/index.html`, and its bundle). After publishing, `await window.kumoReady` on the test app is not `null`.
+6. `kumodeck features on hosting <name…>` with what the app uses (e.g. `kumodeck features on hosting saves`; it makes
+   `kumo.config.json` if missing). Turn `hosting` on here too: when the published folder is the app's folder (`.`), a
+   publish that has to turn it on itself changes `kumo.config.json` while uploading it and stops with `file_changed`.
+   Then publish to the test app as the table says (section 6: `config check`, `config push`, then the "Publish with"
+   command) and continue with the other Skills.
+   The helper files of the other Skills (`user-data.js`, `multiplayer-client.js`, …) are imported by the app's code:
+   with a build step they go in `src/` next to that code; without one, next to the page. The app's data from before (its
+   own browser saves, its own scores) has a step in each Skill: `user-data` §3, `leaderboard` §3.
 
 ## 5. Make the first version
 
@@ -175,8 +209,9 @@ Keep what connects to KUMODeck:
 - Keep each user's data in a cloud save (`kumo.saves`, e.g. the personal best in a game); it works for guests with no sign-up.
 - **The X card, from the start** (the user does nothing): `kumodeck share on --env development` (turns on the card image in
   `kumo.config.json`; production gets it with the first `config push --env production`), then `kumodeck share tags` (it works before
-  the published app has card images on) and write the tags it prints, as they are, inside `<head>` of `public/index.html` (`web-app`: `index.html`) and of any other
-  page people may share, near `</head>`. The image URL in them is the published app's, so the same tags are right in the test
+  the published app has card images on) and write the tags it prints, as they are, inside `<head>` of `public/index.html` (`web-app`: `index.html`; an app you
+  connected: its own `index.html`) and of any other page people may share, near `</head>`. If the page already has `og:` /
+  `twitter:` tags of its own, replace them with these, so the page has one set. The image URL in them is the published app's, so the same tags are right in the test
   app and after publishing: write them once, never swap URLs. KUMODeck does not add them to pages. (Chat only, `publish_game`:
   write its `cardTags` the same way.)
 

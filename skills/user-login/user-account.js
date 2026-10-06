@@ -1,6 +1,7 @@
 /**
  * user-account.js — sign-in helpers for an app's or a game's account screen. From the `user-login` Skill.
- * Copy it to `public/`; build the screen (buttons, inputs) in the project's own style and call these from it.
+ * Copy it next to the page code that imports it (`public/` without a build step, `src/` with one); build the screen
+ * (buttons, inputs) in the project's own style and call these from it.
  * (KUMODeck's API calls users "players": `kumo.auth.player` is the signed-in user.)
  *
  * Every function returns a plain result object instead of throwing for the cases a user causes (wrong password,

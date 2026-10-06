@@ -16,7 +16,7 @@ File next to this SKILL.md (copy it, then set the options — do not rewrite it 
 
 | File | Copy to | What it is |
 |---|---|---|
-| [user-data.js](user-data.js) | `public/user-data.js` (the deployed folder) | one slot with autosave, a copy in the browser, conflict handling and sign-in changes |
+| [user-data.js](user-data.js) | next to the page code that imports it: `public/` in a page without a build step, `src/` in an app with a build step (Vite) | one slot with autosave, a copy in the browser, conflict handling and sign-in changes |
 
 For a single tiny value (a theme setting) the plain calls in section 3 are enough; use `user-data.js` for anything the
 user builds up over time (settings with many fields, a draft, favorites, a game's progress).
@@ -79,10 +79,10 @@ The game templates already have `saves` on — check with `kumodeck features`.
 
 ## 3. In the page
 
-The page gets `kumo` from `connectKumo()` in `public/kumo-boot.js` (it is `null` offline — keep the page usable).
+The page gets `kumo` from `connectKumo()` in `kumo-boot.js` (it is `null` offline — keep the page usable).
 No `kumo-boot.js` (the app was not made with `kumodeck create`)? Connect it first: the `start` Skill, "Already have an app".
 
-1. Copy `user-data.js` into `public/` and set it up once, after connecting:
+1. Copy `user-data.js` next to the code that imports it (above) and set it up once, after connecting:
 
    ```js
    import { createUserData } from './user-data.js';
@@ -111,6 +111,25 @@ No `kumo-boot.js` (the app was not made with `kumodeck create`)? Connect it firs
    data.update((s) => { s.favorites.push(itemId); });
    ```
 
+   **The app already saves in the browser** (it was built before cloud saves: `localStorage.setItem('my-game-save', …)`)?
+   Keep that code's data, do not start people from zero: pass `existing`, which returns the old data in the shape of
+   `initial` (convert it there), or `null` when there is none:
+
+   ```js
+   const data = createUserData({
+     kumo, slot: 'progress', initial, merge,
+     existing: () => {
+       const raw = localStorage.getItem('my-game-save');           // the app's own key, as it was
+       return raw ? { ...initial, ...JSON.parse(raw) } : null;
+     }
+   });
+   ```
+
+   The first load in each browser shows it at once and sends it to the cloud; when the account already has cloud data
+   (another device), it is combined with `merge(cloud, old)`. It is taken once per browser and only for the user using
+   the app at that moment: someone else who signs in on that browser later does not get it. Leave the old key and the
+   code that reads it in place (do not delete it: going back to the old version keeps working), and change the app's
+   save calls to `data.update(...)` and its reads to `data.state`, so there is one save from then on.
    Explicit-save pages: call `await data.flush()` on "Save" instead of waiting.
    Call `await data.flush()` before anything that leaves the page (a sign-in with `mode: 'redirect'`, a link out).
    Closing the tab is covered: every change is also written to the browser at once and sent on the next visit.
@@ -166,7 +185,7 @@ try {
 
 ## 5. Check it works
 
-1. Open the development copy (`kumodeck test-deploy`, or `public/` locally with the development key), change
+1. Open the development copy (`kumodeck test-deploy`, or the page on localhost: it uses the development key), change
    something, wait 2 s.
 2. Reload: the state is back. Open it in a second browser signed in to the same account: same state.
 3. Change it in both, a few seconds apart: the second write merges instead of overwriting (`onLoad` fires with

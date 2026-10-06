@@ -16,7 +16,7 @@ Files next to this SKILL.md (copy them, then adapt the settings — do not rewri
 |---|---|---|
 | [chat.sql](chat.sql) | `functions/migrations/000N_chat.sql` (next free number) | the table and indexes |
 | [chat.ts](chat.ts) | `functions/src/chat.ts` | the endpoints, the `CHANNELS` settings, the clean-up |
-| [chat-client.js](chat-client.js) | `public/chat-client.js` (the game's deployed folder) | joins the channel, shows history + live messages, sends |
+| [chat-client.js](chat-client.js) | next to the game code that imports it: `public/` without a build step, `src/` with one (Vite) | joins the channel, shows history + live messages, sends |
 
 Do not use `kumo.chat` or the `chat` feature for this; the messages live in the creator's database.
 
@@ -56,7 +56,9 @@ Until then joining a channel fails with `feature_disabled`.
 ## 3. Server side (Functions)
 
 1. Find the Functions folder (it has `wrangler.jsonc` with a `DB` database and `src/kumo.ts`). If there is none, create
-   one in the game's folder: `kumodeck create api --template functions-starter` (no `kumodeck init` in `api/`: `kumodeck functions …`
+   one in the game's folder (the one with `kumo.json`; none yet: the `start` Skill, "Already have an app"; the game
+   already has an `api/` folder of its own: use another name, e.g. `kumodeck create chat-api --template functions-starter`):
+   `kumodeck create api --template functions-starter` (no `kumodeck init` in `api/`: `kumodeck functions …`
    uses the game's `kumo.json` above; details in the `functions-d1` Skill §2). Its README has the local setup (`.dev.vars` — the **user** puts their `sk_dev_…` there; never print it).
 2. Copy `chat.sql` into `migrations/` with the next number. Keep the table name, column names and types exactly as they
    are (`chat.ts` depends on them). Extra tables of your own are fine.
@@ -134,9 +136,9 @@ Error codes: 401 `sign_in_required`, 403 `banned` / `not_allowed` / `not_in_chan
 
 ## 4. Game side
 
-1. Put the Functions URLs in one place, `public/kumo-config.js` (public values only), next to the existing settings:
+1. Put the Functions URLs in one place, the `kumo-config.js` the page loads (public values only), next to the existing settings:
    `functionsUrls: { development: 'https://…--dev.…', production: 'https://….…' }` (from `kumodeck functions status`).
-2. Copy `chat-client.js` into `public/` and open the chat after sign-in:
+2. Copy `chat-client.js` next to the game code and open the chat after sign-in:
    ```js
    import { pageEnvironment } from './kumo-boot.js';
    import { openChat } from './chat-client.js';
@@ -155,6 +157,10 @@ Error codes: 401 `sign_in_required`, 403 `banned` / `not_allowed` / `not_in_chan
    const older = await chat.more();          // "load earlier messages"
    ```
    `addLine` must set `textContent` (never `innerHTML`): names and messages are whatever players typed.
+   With a build step (Vite), `kumo-boot.js` is not imported in the source: use `boot.pageEnvironment()` from the module the
+   page loaded at run time (the `start` Skill, "Already have an app" step 5).
+   A chat the game already has (its own server, another service): keep it running until this one works, then switch
+   the page over; old messages stay where they were (bring them in only if the creator asks: rows in `chat_messages`).
 3. Names come from the player's display name. Let players set one so the chat does not fill up with empty names.
    Display names are not unique and not checked: two players can share one, and anyone can call themselves "Admin" or
    the room owner's name. Only `playerId` is proven. Show owner / staff badges from IDs (`playerId === ownerId`, a list

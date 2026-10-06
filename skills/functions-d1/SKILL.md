@@ -77,7 +77,12 @@ kumodeck create api --template functions-starter   # in the app's folder (the on
 cd api && npm install --prefix functions
 ```
 
-- Where: `api/` inside the app's folder. **Do not run `kumodeck init` in `api/`**: every `kumodeck functions …` command finds
+- Where: `api/` inside the app's folder (an app not made with `kumodeck create`: the same, after the `start` Skill's
+  "Already have an app"). The app already has an `api/` folder: pick another name (`kumodeck create kumo-api …`).
+  The app's pages are published from the app's folder itself (`kumodeck test-deploy .`): everything in that folder goes
+  up, the Functions code too, so first move the page's files into `public/` together (index.html and what it loads:
+  relative paths keep working) and publish that folder (`kumodeck test-deploy public`).
+- **Do not run `kumodeck init` in `api/`**: every `kumodeck functions …` command finds
   the app's `kumo.json` in the folder above (the same project; init there would only issue unused keys). `kumodeck create`
   prints that it is linked, and does not copy the Skills and AGENTS.md into `api/` (the app's folder has them: one copy
   is enough, edit that one). If the app has no `kumo.json` yet, run `kumodeck init` in the app's folder first.
@@ -161,7 +166,7 @@ it runs); never `pkill` / `killall`: they can stop the user's other programs.
 
 ## 6. Call it from the page
 
-1. Put the Functions URLs in `public/kumo-config.js` (public values), next to the existing settings:
+1. Put the Functions URLs in the `kumo-config.js` the page loads (public values), next to the existing settings:
    `functionsUrls: { development: 'https://…--dev.…', production: 'https://….…' }` (from `kumodeck functions status`, and
    `kumodeck functions status --env production` once production exists).
 2. Send the user's token on calls that need it:
@@ -176,6 +181,8 @@ it runs); never `pkill` / `killall`: they can stop the user's other programs.
    const body = await res.json();      // 201 { choice } · 409 { error: 'already_voted' } · …
    ```
    Never block the page on it; show a message for the error codes.
+   With a build step (Vite), `kumo-boot.js` is not imported in the source: use `boot.pageEnvironment()` from the module the
+   page loaded at run time (the `start` Skill, "Already have an app" step 5).
 3. Pages on the project's own KUMODeck URLs (development, production, verified custom domain), the origins in `web.allowedOrigins`
    of `kumo.config.json`, and localhost outside production may call the Functions. KUMODeck sets the project's own origins in
    `KUMO_ALLOWED_ORIGINS` and updates them by itself when a custom domain or `web.allowedOrigins` changes (no redeploy);
