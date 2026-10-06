@@ -266,9 +266,9 @@ All take `--env production` for the live app (default: development). `kumodeck f
 - Own domain (`play.mygame.com`; the CLI adds it to production): `kumodeck features on customDomains` →
   `kumodeck config push --env production` → `kumodeck hosting domains add play.mygame.com`. It prints a CNAME and a TXT record:
   **the user** adds both where they manage the domain (you cannot). Then `kumodeck hosting domains status play.mygame.com`
-  until it is `active`. The `<slug>` URL keeps working. Billed daily at cost; remove unused ones with
-  `kumodeck hosting domains remove <host>` (asks first).
-  - No per-project limit on domains (each costs its daily share). The one cap: at most 20 **unverified** domains (TXT not
+  until it is `active`. The `<slug>` URL keeps working. Using the domain on KUMODeck costs $0.10 a month per domain (the certificate
+  and serving on it), from the prepaid balance by the day; the domain itself is paid where it was bought. Remove unused ones with `kumodeck hosting domains remove <host>` (asks first).
+  - No per-project limit on domains (each costs the same). The one cap: at most 20 **unverified** domains (TXT not
     found yet) per environment at a time — 409 `domain_limit`, the number is in `details.limit`. It exists so nobody can
     queue sign-ups for domains they do not own. Fix: have the user add the TXT records for the waiting ones (verified ones
     do not count) or remove ones they no longer want, then add again.
@@ -481,8 +481,8 @@ deploying, or when the user chose OpenNext (`kumodeck deploy --next opennext`, w
 
 ## Cost
 
-Hosting (stored files and reads), custom domains, Functions and server-rendered apps (requests and CPU) are billed at cost (KUMODeck's usage fee) from the prepaid
-balance. Old versions are kept so rollback is instant.
+Hosting (stored files and reads), Functions and server-rendered apps (requests and CPU) are billed at cost (KUMODeck's usage fee) from the prepaid
+balance; the user's own domain is $0.10 a month per domain (the domain itself is paid where it was bought). Old versions are kept so rollback is instant.
 
 ## Security
 

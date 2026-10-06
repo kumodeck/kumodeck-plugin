@@ -321,5 +321,7 @@ Turn on only what a request needs (`kumodeck features on <name>` then `kumodeck 
   Never read saved tokens or secret keys to call the API directly. Configuration can load on a new conversation, but
   do not promise that a restart fixes authentication or blocked communication. For Codex command permissions and
   blocked communication, read `deploy` → "Codex: tools and command permissions" before installing or retrying.
+  KUMODeck's MCP says it isn't authorized yet? If `kumodeck whoami` works, continue with the CLI and do not ask the user to sign in
+  again. Start the MCP sign-in (`mcp__kumo__authenticate` in Claude Code) only when the user asks; they press Allow once.
   What the CLI can show: `kumodeck projects list` / `kumodeck projects show` (users, daily active users, live version),
   `kumodeck config show` / `kumodeck config check`, `kumodeck usage` (`--daily`), `kumodeck billing` (the prepaid balance), `kumodeck players search` / `kumodeck players show <playerId>`, `kumodeck appeals`; add `--json` to read them.
