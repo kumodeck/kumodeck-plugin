@@ -20,6 +20,7 @@ Files next to this SKILL.md (copy them, then adapt — do not rewrite them from 
 | [api-kit.ts](api-kit.ts) | `functions/src/api-kit.ts` | `requireUser` (who is calling), `readJson`, `json`, `HttpError`, a tiny `router` |
 | [polls.sql](polls.sql) | `functions/migrations/000N_polls.sql` (next free number) | example table: one vote per user per poll |
 | [polls.ts](polls.ts) | `functions/src/polls.ts` | example endpoints built with the kit — the pattern for your own |
+| [do-room.ts](do-room.ts) | `functions/src/do-room.ts` | a match room that checks every move on the server (a Durable Object, section 10) |
 
 Copy `polls.*` only if the creator wants polls; otherwise use them as the model and write your own feature the same way.
 
@@ -247,7 +248,11 @@ for Functions only. The MCP tool `functions_logs` returns the same. Each line is
 | `logs_disabled` 409 | `kumodeck logs` | the live version was deployed with `--no-logs`: `kumodeck functions deploy` again without it (lines start from that deploy) |
 | `rate_limited` 429 | `kumodeck logs` | log reads are limited for all of KUMODeck together: wait `details.retryAfter` seconds (it can be 300), read once, never in a loop; narrow `--since` / `--level` / `--search` |
 | `functions_busy` 409 | `kumodeck functions deploy` | another deploy is running; retry |
-| `invalid_request` 400 "Durable Objects are not available yet (usage metering is not in place). Use D1, KV or R2 for now." | `kumodeck functions deploy` | Durable Objects are not available on KUMODeck yet (`kumodeck functions dev` runs them locally, the deploy refuses them; nothing was changed). Remove `durable_objects` and `migrations` from `wrangler.jsonc` and keep the shared state in D1 (one row per room or chat, read and written by your endpoints); live rooms: the `multiplayer` Skill. Tell the user in one line that this part is not available yet |
+| `durable_object_removed` 409 | `kumodeck functions deploy` | a class that existed is missing from `wrangler.jsonc`: put its binding and class back (removing it would delete its data). To really delete it, ask the user first: it cannot be undone |
+| `invalid_request` 400 "At most 100 Durable Object bindings" | `kumodeck functions deploy` | use one class for many rooms (one object per room by name), not one class per room |
+| `invalid_request` 400 "Durable Objects are not available yet …" | `kumodeck functions deploy` | this KUMODeck server has Durable Objects switched off (nothing was changed). Keep the shared state in D1 instead (one row per room, read and written by your endpoints), or live rooms with the `multiplayer` Skill; tell the user in one line |
+| `invalid_request` 400 "Raw TCP connections (cloudflare:sockets, node:net, node:tls) are not allowed…" | `kumodeck functions deploy` | the code uses Durable Objects and imports one of those (or `node:module`): remove it and call other services with `fetch()` from the Worker, not from a Durable Object |
+| `invalid_request` 400 "…import() must be given one plain string…" / "…import node:process only as a default import…" / "…must be ES modules…" | `kumodeck functions deploy` | with Durable Objects: write `import("./file.js")` with a fixed name, use `import process from "node:process"`, and bundle as ES modules (wrangler's default) |
 | `functions_suspended` 403 | `kumodeck functions deploy` | `details.reason`: `balance` → the user adds credit (`kumodeck billing topup`), it resumes within a minute; anything else → the user answers KUMODeck's email |
 | `token_expired` 401 | `players.verify` → `null` | normal after 15 minutes: the page's SDK refreshes; always call `getAccessToken()` right before the request |
 | 503 from the Functions URL | users | the prepaid balance is used up: `kumodeck billing topup`; data is kept |
@@ -259,9 +264,121 @@ for Functions only. The MCP tool `functions_logs` returns the same. Each line is
   credit (roughly $0.60 a month for a small project: 1 million requests, 100 MB of data). Add indexes for the queries
   you run often (fewer rows read = cheaper and faster).
 - What is in the database is the creator's to manage, including deleting a user's rows when they ask.
+- Durable Objects: requests, running time, rows and data kept, at cost (section 10, "Cost"). An object that is asleep
+  costs nothing but its stored data.
 - Logs: each line the code prints is billed as KUMODeck's usage fee at cost ($0.60 per million lines); printing nothing costs
   nothing. Lines are kept 7 days, then deleted. **Never log personal data or secrets** (emails, passwords, access tokens,
   API keys, payment details, anything a user would not want others to see): everyone who can read the project's logs,
   including AI agents allowed to, sees them. Log IDs and error messages. Do not log inside a hot loop or on every request
   unless needed; for a version whose output nobody reads, `kumodeck functions deploy --no-logs` keeps none.
 - Never put the secret key (`sk_…`) or a third-party secret in `wrangler.jsonc`, in the page, in git or in chat.
+
+## 10. Live state in one place (Durable Objects)
+
+A **Durable Object** is one small server that lives as long as it is needed, with its own private SQLite storage, that
+every user reaches by the same name. Use it when many people must see **one** live state that changes many times a
+second, and the server must decide what happens:
+
+| The user asks for | One Durable Object per | It does |
+|---|---|---|
+| "the server decides who wins" / "no cheating in matches" | match or room | checks each move, keeps the board, sends the result to everyone |
+| a chat with its own rules (slow mode, word filter, roles) | chat channel | keeps the last messages, sends new ones to everyone in it |
+| a feed or timeline that updates live (likes, new posts) | user's feed, or a topic | pushes "new post" / "likes: 12" to everyone watching |
+| a counter many people press at once (a live poll, a queue number) | counter | counts in order: no two people get the same number |
+
+Pick something else when it is not live: data that only changes on a request goes in D1 (sections 3–4); a game that only
+needs players to see each other uses KUMODeck's rooms (the `multiplayer` Skill, no server code); a plain chat uses the
+`chat` Skill. Say it to the user in their words ("the server checks each move"), not "Durable Object".
+
+### Add one
+
+1. Copy [do-room.ts](do-room.ts) to `functions/src/do-room.ts` (a match room: checks moves on the server). Adapt
+   `checkMove` to the game's rules; keep the rest.
+2. In `wrangler.jsonc`:
+   ```jsonc
+   "durable_objects": { "bindings": [{ "name": "ROOMS", "class_name": "MatchRoom" }] },
+   "migrations": [{ "tag": "v1", "new_sqlite_classes": ["MatchRoom"] }]
+   ```
+   Every class goes in `new_sqlite_classes` (the storage is SQLite). A later new class gets a new tag (`v2`, …); never
+   edit a tag that was deployed.
+3. In `src/index.ts`:
+   ```ts
+   import { roomRoute, type MatchRoom } from './do-room';
+   export { MatchRoom } from './do-room';
+   // in interface Env:
+   ROOMS: DurableObjectNamespace<MatchRoom>;
+   // in fetch(), before `return json({ error: 'not found' }, 404, cors);`
+   const room = await roomRoute(request, this.env);
+   if (room) return room;
+   ```
+   The page (`api` as in section 6):
+   ```js
+   const token = await kumo.auth.getAccessToken();
+   const ws = new WebSocket(`${api.replace(/^http/, 'ws')}/rooms/${roomName}/ws?access_token=${encodeURIComponent(token)}`);
+   ws.onmessage = (e) => { const m = JSON.parse(e.data); /* { type: 'state', game } after every move · { type: 'error', code } to the sender */ };
+   ws.send(JSON.stringify({ type: 'move', cell: 4 }));   // after onopen
+   ```
+4. `kumodeck functions dev`, open two browser tabs on the page, play a move in each. Then `kumodeck functions deploy` (section 7).
+
+### Rules (the copied file already follows them)
+
+- **Who is calling is checked once, in the Worker, before the Durable Object**: `roomRoute` verifies the user's token
+  (`players.verify`) and passes the verified id in a header it sets itself (an incoming header of that name is dropped).
+  The Durable Object trusts only that header. Never take a user id from a message.
+- Browsers cannot send an `Authorization` header when opening a WebSocket: the page passes the token as
+  `?access_token=` on `wss://` and the Worker reads it from there. Do not log request URLs.
+- **Use the hibernation calls** (`this.ctx.acceptWebSocket(ws)`, `webSocketMessage`, `webSocketClose`), never
+  `ws.accept()` + `addEventListener`: a room waiting between moves then costs no running time.
+- Keep the room's state in `this.ctx.storage.sql` (SQLite) or `this.ctx.storage.kv`, not only in memory: the object can
+  restart at any moment, and memory is gone then.
+- Check every message like any request (allowed values, size). Drop a socket that sends too much (the file closes it
+  after 20 messages a second).
+- A Durable Object cannot be removed by deleting its binding: a deploy without a class that existed answers
+  `durable_object_removed` 409 (its data would be deleted). Keep the class (it costs nothing while nobody uses it).
+- **Calls to other sites go from the Worker, not from the Durable Object** (`fetch()` included): make the call in the
+  Worker's handler (where KUMODeck checks outgoing calls) and pass the result in. A deploy whose code opens raw TCP
+  connections (`cloudflare:sockets`, `node:net`, `node:tls`) is refused (`invalid_request` 400). Calls made from
+  Durable Objects are counted every hour; a sudden flood pauses the Functions (`functions_suspended`, the user answers
+  KUMODeck's email).
+
+### Cost (at cost, from prepaid credit)
+
+Billed like the rest of Functions, at Cloudflare's price, never more (Cloudflare's monthly included amount is shared by
+everyone on KUMODeck and given back at the end of the month):
+
+| What | Price |
+|---|---|
+| Requests (each HTTP call, and opening a WebSocket) | $0.15 per million |
+| Messages users send to it | 20 messages = 1 request (messages it sends out are free) |
+| Running time | $12.50 per million GB-seconds (one object = 0.128 GB: one second awake ≈ $0.0000016). Asleep between messages = free |
+| Storage rows read / written | $0.001 / $1.00 per million rows |
+| Data kept | $0.20 per GB a month |
+
+Example to tell the user: a 4-player match of 10 minutes, each player sending 1 move a second and the server saving each
+move: about $0.005 per match (half a cent), so 1,000 matches ≈ $5. The biggest part is usually rows written: save the
+board once per move, not once per message, and keep chat or cursor messages out of storage. `kumodeck usage` shows the
+month.
+
+### Limits
+
+From Cloudflare (the same on your own Cloudflare account; they do not change by asking):
+
+| Limit | Value | What to do |
+|---|---|---|
+| One object's speed | about 1,000 requests a second (each user's message counts) | players × messages per second ≤ about 1,000; split big crowds into several objects (one per room, not one for everyone) |
+| WebSockets on one object | 32,768 | the speed above runs out first |
+| One message | 32 MiB in | keep messages small; send files through R2 |
+| One stored value | 2 MB (one key or one row) | store a big state as several rows |
+| One object's storage | 10 GB | one object per room / user, not one for the whole app |
+| CPU per request | 30 seconds by default, up to 5 minutes | long work goes to a Queue or a cron |
+| Classes | 500 per Cloudflare account, shared by every app on KUMODeck | a few classes per app; one class serves any number of rooms |
+
+Safety limits KUMODeck keeps (to protect the user's money and other users, not to cap the app):
+
+| Limit | Why |
+|---|---|
+| Up to 100 Durable Object bindings per environment (the error says `limit`) | the account-wide 500 classes above are shared |
+| A deploy that would delete a class answers `durable_object_removed` 409 | deleting a class deletes its data, with no undo |
+| When the prepaid balance is used up, the Functions URL answers 503 and the objects stop with it | nothing is spent that cannot be paid; data is kept |
+| The Functions' CPU limit (`kumodeck functions limits --cpu-ms`) applies to Durable Objects too, and so does the limit that follows the prepaid balance (updated every minute) | a stuck or runaway object stops instead of spending the user's credit |
+| Raw TCP (`cloudflare:sockets`, `node:net`, `node:tls`) is refused at deploy; calls from Durable Objects to other sites are counted every hour and a flood pauses the Functions | KUMODeck's checks on outgoing calls see only the Worker's calls |

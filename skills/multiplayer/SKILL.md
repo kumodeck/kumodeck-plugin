@@ -258,6 +258,17 @@ Say plainly to the user: rooms relay and keep order, they do not run the game on
 make the host the referee (host decides, `setState` publishes); anything worth cheating for goes through their own
 Functions and database. **Protect in D1, not in saves**: never trust a score a player's game reports to a ranking or a prize.
 
+**When the server must decide the game** (who wins, whether a move is allowed, a hidden hand of cards): KUMODeck's rooms
+carry messages and do not run game rules. Two ways, pick from the request and tell the user in one line:
+
+| Way | When | How |
+|---|---|---|
+| Host decides (no server code) | friends playing together; cheating is not a worry | one player's page decides (`examples/sky-duel`) |
+| The server checks every move | rankings, prizes, strangers, anything paid | the game's own room on the server: the `functions-d1` Skill, section 10 (a match room that checks each move). The page connects to the Functions URL instead of `kumo.rooms` |
+
+The second way costs a little more (about half a cent for a 10-minute 4-player match, see `functions-d1` section 10) and
+needs the user's prepaid credit for Functions.
+
 ## 4. Limits (set them per mode; design within them)
 
 Each room's limits come from its mode. The defaults suit most games; a game that needs more raises them in the mode's
@@ -320,6 +331,8 @@ Try again.") with a **Try again** button that calls `playOnline` with the same c
 - **Not saved**: rooms keep nothing after everyone leaves. Keep progress with `kumo.saves` (the `user-data` Skill) and
   shared or protected data in D1 (`functions-d1`).
 - Chat between players: use the `chat` Skill (realtime channels, history in their own database), not room messages.
+- Live features that are not a game (a chat with its own rules, a live feed, a counter many people press): the
+  `functions-d1` Skill, section 10.
 - Direct modes (`"transport": "p2p"`) have no referee at all and hold at most 8 players: pick them only through the
   table in section 0, and always tell the user in one line what they give up (where they live is visible unless
   `relay: "always"`; nobody stops cheating; with `relay: "never"` some players may not connect).
