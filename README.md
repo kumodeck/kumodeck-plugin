@@ -1,3 +1,10 @@
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="assets/kumodeck-logo-dark.png">
+    <img src="assets/kumodeck-logo-light.png" alt="KUMODeck" width="480">
+  </picture>
+</p>
+
 # KUMODeck plugin
 
 Make a web app or a game with an AI chat, and put it online with KUMODeck.
