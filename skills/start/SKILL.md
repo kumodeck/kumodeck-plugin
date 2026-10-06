@@ -164,6 +164,8 @@ Work in the app's folder (the one with its `package.json`; without a build step,
    `deployDir` in `kumo.json` when it can tell (`public`, or `dist` for Vite). `--project <slug>` links a project that
    already exists instead (it writes the key for your test app; the first `kumodeck deploy --env production` adds the
    published app's key). The app's folder has `kumo.json` already: `kumodeck init --force --project <slug>`.
+   No `kumo.json`: a new project, unless the user named an existing one (`INDEX.md`, "Which project"); never pick one
+   because its name looks like this app's.
    - `gameConfig` is `null` (the page is somewhere `kumodeck init` does not look): it prints the whole `kumo-config.js`
      to save next to the page. Use it instead of the copy from step 3.
    - Skip the `<script>` lines it prints for such folders: step 5 is the one the other Skills expect.

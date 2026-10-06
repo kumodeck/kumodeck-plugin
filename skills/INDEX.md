@@ -65,6 +65,17 @@ While you work, never show tool argument names or inside words in progress messa
 After a test publish, end with the one closing line of the `deploy` Skill §1 (the URL
 and how to publish), not with notes, explanations or a question.
 
+## Which project (every Skill)
+
+**A folder without `kumo.json` gets a new project.** Make a new one (`kumodeck init --name "<App name>"`; in a web chat,
+`publish_game` with `name` and no `projectId`) unless the user named an existing project themselves. Never pick a project
+because its name looks like this app's (in `kumodeck projects list` or `projects_list`): it can be another copy or someone
+else's app, and publishing there replaces what people see on it. If one looks like it, ask once, then do what the user says:
+"Make a new one, or update <name> (<its test app URL>)?" 「新しく作りますか？ それとも <名前>（<テスト用のアプリの URL>）を
+更新しますか？」. Its test app URL: `kumodeck projects show --project <slug> --env development --json` (`liveDeployment.url`).
+`kumodeck init --project <slug>` stops with `project_has_versions` when that project already has versions from another
+folder: add `--yes` only after the user said to update it.
+
 ## No terminal and no files (Claude or ChatGPT on the web)
 
 In a web chat (claude.ai, chatgpt.com, the phone apps) there is no terminal (`kumodeck` cannot run) and the user's files

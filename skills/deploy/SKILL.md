@@ -82,7 +82,7 @@ forbidden. Permission to run a command and KUMODeck's confirmation are separate;
 kumodeck whoami           # logged in (exit code 3 = the user runs `kumodeck login` themselves), balance, linked project
 ```
 
-- The folder has `kumo.json`. If not, run `kumodeck init` in the project folder (or pass `--project <slug>`); an app not made from a template: the `start` Skill, "Already have an app?".
+- The folder has `kumo.json`. If not, run `kumodeck init` in the project folder: a new project, unless the user named an existing one (`--project <slug>`; never one picked because its name looks like this app's: `INDEX.md`, "Which project"); an app not made from a template: the `start` Skill, "Already have an app?".
 - The page's `kumo-config.js` (templates: `public/`) has real publishable keys. `kumodeck deploy` warns when it still says `REPLACE_ME` or has no key
   for the environment: then the page runs offline. Fix: `kumodeck init` in the project folder.
 - The folder to upload has `index.html` at its root. With no folder named, deploy uploads `deployDir` from `kumo.json`
@@ -179,7 +179,7 @@ files, no settings to change (the upload page in step 6 is the only exception, a
    (files sent go over it) and asks the user once (a confirmation in the chat, or a link to press) before people see it;
    hosting, the features on in the test app and `config` are in that same confirmation. On `approval_required` with a
    `confirmUrl`: open it / show it as in §5, then call `publish_game` with `pendingActionId` (again right away while waiting).
-5. **A game published here before (even in another chat):** `projectId` (`projects_list`) + `features` + `prepare: true` give its
+5. **A game published here before (even in another chat):** `projectId` (`projects_list`; only the game the user named, never one with a similar name) + `features` + `prepare: true` give its
    keys and steps; `read: true` gives its code. Change that code (do not start over) and send only changed or new files: the others stay.
 6. **Last resort — a game too big to send in parts** (well over several MB of images or sounds): call `publish_game`
    without files. It returns `uploadAt` (a page) and `tellTheUser`: make a zip with `index.html` at the top, give the user a
