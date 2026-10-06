@@ -268,14 +268,14 @@ All take `--env production` for the live app (default: development). `kumodeck f
   **the user** adds both where they manage the domain (you cannot). Then `kumodeck hosting domains status play.mygame.com`
   until it is `active`. The `<slug>` URL keeps working. Using the domain on KUMODeck costs $0.10 a month per domain (the certificate
   and serving on it), from the prepaid balance by the day; the domain itself is paid where it was bought. Remove unused ones with `kumodeck hosting domains remove <host>` (asks first).
-  - No per-project limit on domains (each costs the same). The one cap: at most 20 **unverified** domains (TXT not
-    found yet) per environment at a time — 409 `domain_limit`, the number is in `details.limit`. It exists so nobody can
-    queue sign-ups for domains they do not own. Fix: have the user add the TXT records for the waiting ones (verified ones
-    do not count) or remove ones they no longer want, then add again.
+  - Several apps on one domain, each at its own path: from each app's folder, `kumodeck hosting domains add mygame.com/race`
+    (`mygame.com` alone = the root). Only apps of the same account; on a domain one of them already has there is no DNS step and
+    no extra cost. First read the `troubleshoot` Skill, "Several apps on one domain" (links in the page, shared storage, errors).
+  - No per-project limit on domains (each costs the same). The one cap: at most 20 **unverified** domains (TXT not found yet) per environment at a time — 409 `domain_limit`, the number is in `details.limit`.
+    It exists so nobody can queue sign-ups for domains they do not own. Fix: have the user add the TXT records for the waiting ones (verified ones do not count) or remove ones they no longer want, then add again.
   - Unverified domains are removed after 7 days, not-active ones after 14 days; the user gets an email 2 days before.
     Re-adding later is fine (the TXT value never changes for the account).
-  - The API also accepts the development environment (a testers' domain such as `beta.mygame.com`; still not indexed by
-    search engines). Suggest it only if the user asks for a test domain.
+  - The API also accepts the development environment (a testers' domain such as `beta.mygame.com`; still not indexed by search engines). Suggest it only if the user asks for a test domain.
 
 ## 8. Errors while deploying
 

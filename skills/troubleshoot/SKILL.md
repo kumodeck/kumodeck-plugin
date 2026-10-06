@@ -107,6 +107,27 @@ line on stderr) and waits, then sends the same change once. Show the link to the
 | no email arrives (confirmation, password reset) on a **local** KUMODeck server | a local server does not send email | Read it at `<api>/v1/dev/outbox?to=<email>` (newest first) and open the link |
 | `unavailable` (exit 2) | that command is not available | Do not work around it; tell the user |
 
+### Several apps on one domain
+
+`kumodeck hosting domains add mygame.com/race` (MCP `hosting_domain_add` with `path: "/race"`) puts this app at
+`https://mygame.com/race/`. Other apps of the same account can sit at other paths and at the root. They share one origin, so:
+
+- Links to the app's own files must not start with `/` (`images/a.png`, not `/images/a.png`): the browser loads a `/` link
+  from the domain root, not from `/race/`. KUMODeck does not rewrite files; adding the path and each deploy return `warnings`
+  with the file, line and link (`root_relative_ref`; `root_relative_more` = how many more). URLs built in JS are not found: check them.
+- `spa_needs_base` (an app with `web.spaFallback`): add `<base href="/race/">` to `index.html`, or build with base `/race/`.
+  `hidden_by_path`: the root app has files under `race/` that no longer load; move them or choose another path.
+- localStorage, IndexedDB, cookies and Service Workers are shared by every app on the domain: start the app's own keys with
+  its slug (`race:best`), and register a Service Worker with the app's path as its scope.
+- Server-rendered apps only at the root. Allowed origins (`web.allowedOrigins`, Functions) are per domain. Paths add no cost.
+
+| Status + code | Meaning | Fix |
+|---|---|---|
+| 409 `path_taken` (`details.path`) | another app is at that path | Choose another path, or remove that app from the domain first (`kumodeck hosting domains remove mygame.com` in its folder) |
+| 409 `domain_already_used` (`details.path`) | this app is already on that domain, at `details.path` (one path per app) | To move it: `kumodeck hosting domains remove mygame.com`, then add the new path |
+| 400 `app_needs_domain_root` | a server-rendered app cannot be served under a path | Give it the root of a domain of its own (`app.mygame.com`) |
+| 400 `invalid_request` about the path | paths use lowercase letters, digits, `-` and `_` (no dots, no `--`) | Fix the path (`mygame.com/race-2`) and add again |
+
 A code not listed here: read `message` and `hint`, fix the cause they name, and run the same command again.
 Server errors (5xx) other than the ones above: wait a little and retry once; if it keeps failing, tell the user.
 
