@@ -85,7 +85,7 @@ Read the result and do only what is missing:
 
 | What you see | What to do |
 |---|---|
-| exit code 3 (`not_logged_in`) | Run `kumodeck connect` (or `kumodeck login`): it opens the KUMODeck dashboard in the user's browser, where they click Allow once. This is your own login: never use a KUMODeck login or keys the user made for themselves. No account yet: **the user** signs up (`kumodeck signup` in their own terminal, or the dashboard). They type passwords; you never do. Then run `kumodeck whoami --json` again |
+| exit code 3 (`not_logged_in`) | Run `kumodeck connect` (or `kumodeck login`): it opens the KUMODeck dashboard in the user's browser, where they click Allow once. This is your own login: never use a KUMODeck login or keys the user made for themselves. No account yet: **the user** signs up (`kumodeck signup --invite <code>` in their own terminal, or the sign-up page of the dashboard). KUMODeck is invite-only for now: creating an account needs the invite code the user was given (`invite_code_required` without it). Ask the user for their code; never make one up. They type passwords; you never do. Then run `kumodeck whoami --json` again |
 | `developer.emailVerified: false` | Ask the user to open the confirmation email from KUMODeck and paste the link here, then run `kumodeck verify <link>`. No email: `kumodeck verify --resend`. Accounts made with Google / GitHub are already confirmed |
 | `prepaid.balance` is 0 or `prepaid.canSpend: false` | Run `kumodeck billing topup` (default $5; any amount from Stripe's minimum $0.50, but the card fee has a fixed 30¢ part, so tiny top-ups lose most of it to the fee). It prints a Stripe payment page and waits: show the URL, **the user pays there** (you never see or type card details). When it prints the new balance, go on |
 
@@ -297,7 +297,7 @@ Turn on only what a request needs (`kumodeck features on <name>` then `kumodeck 
   `kumodeck billing` shows the balance and about how many days it lasts.
 - While the balance is $0 or less and nothing else covers it, the user-facing side pauses (users see a neutral
   message) and new projects / deploys are refused with 402. Adding funds resumes everything on its own.
-- An invite code from the user: `kumodeck billing redeem <code>` (or `kumodeck signup --invite <code>` when they sign up). Invite
+- An invite code from the user: `kumodeck signup --invite <code>` when they sign up (needed to create an account while KUMODeck is invite-only), or `kumodeck billing redeem <code>` for an account that has none yet. Invite
   credit pays usage fees only (it cannot be refunded or withdrawn) and is added once their email is confirmed.
 
 ## Security (always)

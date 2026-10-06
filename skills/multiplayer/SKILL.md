@@ -304,6 +304,9 @@ In a room, `room.limits` has that room's values (`maxMessageBytes`, `maxStateByt
 Errors from `playOnline` / `kumo.rooms` carry `code`: `room_not_found` (wrong code, or a development code used in
 production), `room_full`, `room_locked`, `unknown_mode`, `match_cancelled`, `seat_expired`, `already_in_room`,
 `feature_disabled` (step 1), `balance_due` (prepaid balance used up: the `troubleshoot` Skill).
+Joining that fails part-way (`join_connection_lost`, `join_timeout`; `create_…` / `match_…` the same for making a room or quick
+match): the SDK already retried a join once, so show the message (`e.message`, e.g. "The connection dropped while joining the room.
+Try again.") with a **Try again** button that calls `playOnline` with the same code — never a bare `Could not join (code)` back on the menu.
 
 ## 5. What to promise, and what not
 
