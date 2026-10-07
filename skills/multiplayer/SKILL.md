@@ -21,7 +21,7 @@ There is no single right way to play online: it depends on who plays, how fast t
 So multiplayer is the one exception to "build first" in `AGENTS.md`: **before building, ask ONE short set of questions,
 then build**. Never a second round — if an answer is unclear, pick the cheapest row of the table below that fits and say
 in one line what you picked. Skip the questions only when the user already answered them (for example "friends only,
-it's a card game, no rankings") or said "leave it to you" / 「おまかせ」.
+it's a card game, no rankings") or said "leave it to you" / 「おまかせ」 — then the report after building must name the other ways (end of this section).
 
 **Words for the user.** The user does not know our setting names. In the questions and in your explanation, never say
 quick match, matchmaking, P2P / peer-to-peer, relay, TURN, transport, server, host or referee (and their Japanese
@@ -116,6 +116,14 @@ That is still the one round.
 - After building, report in one line what you picked, its price and what it gives up, e.g. 「友だちと番号で入るやり方にしました。
   4 人で 30 分遊んで、ゲーム中のやり取りは 0 円・部屋に入る分は 0.01 セント未満（目安）。そのかわり相手に住んでいる地域の目安が見え、
   ずるは止められません」.
+- **Then add one line with the ways you did not pick**, so the user knows they can ask (1–2 sentences, plain words from the
+  table above, never naming what you already built). Built for friends → name pairing with strangers, more players and
+  stopping cheating; built automatic pairing → name the friends' code or link and stopping cheating; built with KUMODeck
+  carrying every move → name the cheaper direct way. For more players use the real numbers: the direct way holds 8 at
+  most, more goes through KUMODeck (up to 1,000 a room; 4 players for 30 minutes cost about 0.31–0.47 cents). E.g.
+  「知らない人とも自動で組み合わせたい、もっと多くの人数で遊びたい（直接つなぐ形は 8 人まで・それ以上は KUMODeck を通す形）、
+  ずるを止めたいときは言ってください」. **Always add it when the request already decided the answers and you skipped the
+  questions** (「友だちと遊びたい」, "leave it to you"): that is when the user has not seen the other ways at all.
 
 ## 1. Turn it on (shortest path)
 
