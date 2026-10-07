@@ -85,15 +85,17 @@ Read the result and do only what is missing:
 
 | What you see | What to do |
 |---|---|
-| exit code 3 (`not_logged_in`) | Run `kumodeck connect` (or `kumodeck login`): it opens the KUMODeck dashboard in the user's browser, where they click Allow once. This is your own login: never use a KUMODeck login or keys the user made for themselves. No account yet: **the user** signs up (`kumodeck signup --invite <code>` in their own terminal, or the sign-up page of the dashboard). KUMODeck is invite-only for now: creating an account needs the invite code the user was given (`invite_code_required` without it). Ask the user for their code; never make one up. They type passwords; you never do. Then run `kumodeck whoami --json` again |
+| exit code 3 (`not_logged_in`) | Run `kumodeck login` and follow **Signing in** below (or `kumodeck connect`, which signs in the same way). This is your own login: never use a KUMODeck login or keys the user made for themselves. No account yet: **the user** signs up (`kumodeck signup --invite <code>` in their own terminal, or the sign-up page of the dashboard). KUMODeck is invite-only for now: creating an account needs the invite code the user was given (`invite_code_required` without it). Ask the user for their code; never make one up. They type passwords; you never do. Then run `kumodeck whoami --json` again |
 | `developer.emailVerified: false` | Ask the user to open the confirmation email from KUMODeck and paste the link here, then run `kumodeck verify <link>`. No email: `kumodeck verify --resend`. Accounts made with Google / GitHub are already confirmed |
 | `prepaid.balance` is 0 or `prepaid.canSpend: false` | Run `kumodeck billing topup` (default $5; any amount from $0.50; the card processing fee (about 6%) is added on top, so the amount chosen lands in the balance). It prints a Stripe payment page and waits: show the URL, **the user pays there** (you never see or type card details). When it prints the new balance, go on |
 
-**Running in the cloud** (not on the user's computer, e.g. Claude Code on the web): the browser cannot come back to you after
-Sign in. Run `kumodeck login --no-wait`, show the user the link, and ask them to press Sign in and paste here the whole address
-their browser then shows (it starts with `http://127.0.0.1` and may say it cannot connect). As soon as they paste it, run
-`kumodeck login --callback-url "<address>"` (keep the quotes; it works for 60 seconds after Sign in, so do it first). Expired:
-start again. If that does not work, the user can run `kumodeck login --email <their email>` in their own terminal.
+**Signing in** (the same on the user's computer, in the cloud, over SSH): `kumodeck login` prints a link and a code
+(like `BCDF-GHJK`). Show the user both, and say only: "Open this link. If it shows the same code, press Allow." The user
+pastes nothing back. The command waits about 100 seconds; if it ends with exit code 4 (`login_pending`, "Not signed in
+yet"), run `kumodeck login --resume` (same link and code) and repeat until it prints the signed-in email. Do not run
+`kumodeck login` again while waiting: that makes a new link and code. `access_denied`: the user pressed Cancel; ask before
+trying again. `expired_token` (10 minutes passed): run `kumodeck login` for a new link. After `kumodeck connect` ends with
+exit code 4: `kumodeck login --resume`, then `kumodeck connect` again.
 
 Why this order: adding funds needs a confirmed email, and creating a project or deploying needs prepaid credit
 (KUMODeck bills usage at cost from it; there is no free tier). Tell the user that in one sentence, not more.
