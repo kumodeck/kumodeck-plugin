@@ -69,6 +69,14 @@ truly cannot decide, and then only one question. What to decide:
 Never pick silently: the one line says what you chose. Say plainly that the rules and the data are theirs (KUMODeck runs
 the code, it does not decide it).
 
+Then add **one line with what else they can ask for** (1–2 sentences, plain words, never naming what you just built;
+the closing line of `deploy` §1 stays last). Pick the next step closest to what you built: work that runs by itself on a
+schedule (every hour, every night — `scheduled()`), calling another service with their own key, the server checking every
+move live (§10), or publishing the app on their own domain (the `deploy` Skill §7). E.g.
+「毎晩決まった時間に自動で動く処理や、自分のドメインでの公開もできます。言ってくれれば作ります」. Never say API, cron or database
+names to the user. Only name things from the dashboard's guide list (online multiplayer, leaderboards, sign-in, saving,
+server code and a database, your own domain, a card on X).
+
 ## 2. The Functions folder
 
 If the project has no folder with `wrangler.jsonc` + `src/kumo.ts`, create one next to the game or app:

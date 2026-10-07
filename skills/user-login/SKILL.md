@@ -50,6 +50,13 @@ The code and the screens are the creator's. KUMODeck keeps the sessions, passwor
 Do not pick silently. If the creator says "you choose": email + password, a "Keep my data" button in the menu,
 display name on, account screen with sign out / delete / download, appeal form — and tell them.
 
+**After building, add one line with what else they can ask for** (1–2 sentences, plain words, never naming what you
+just built; the closing line of `deploy` §1 stays last). Pick the next step closest to what you built: email only → name
+one-tap sign-in with Google / Discord / Apple / X; sign-in without saved data yet → name keeping each person's progress so
+they can pick up where they left off on another device (the `user-data` Skill). E.g. 「Google や X でワンタップでログインできる
+ようにしたり、スマホとパソコンで続きから遊べるようにしたりもできます。言ってくれれば作ります」. Only name things from the dashboard's
+guide list (online multiplayer, leaderboards, sign-in, saving, server code and a database, your own domain, a card on X).
+
 ## 2. Turn it on
 
 ```bash

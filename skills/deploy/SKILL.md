@@ -41,6 +41,11 @@ all test-only and previous-refusal safeguards still apply.
 - **While working, never show tool argument names or inside words** (`everyone`, "test app only", `prepare`, `uploadId`,
   `--env`): say what is happening in plain words ("Putting it on your test app…" / 「テスト用のアプリに出しています…」).
 - **A note for the history** (optional): `-m "new boss fight"` shows up in `kumodeck deployments`.
+- **After publishing to everyone** (the production deploy finished; never after a test publish, whose closing line has
+  nothing added), add one line with what else they can ask for (1–2 sentences, plain words, never naming what they
+  already have): publishing on their own domain (§7), the image-and-title card when the link is posted on X (§4, if the
+  page has no card tags yet), or keeping a test version to try changes before everyone sees them. E.g.
+  「自分のドメイン（play.example.com など）で公開したり、X に貼ったときに画像付きのカードが出るようにしたりもできます。言ってくれれば設定します」.
 
 ## Codex: publishing intent and the one human confirmation
 
@@ -193,9 +198,8 @@ On a computer with a terminal (Claude Code, Codex), the single-step tools are al
 ## 4. After deploying (check)
 
 - Open the printed URL, or give it to the user to try. Add `?offline=1` to check the page still works without the backend.
-- **Never create test users or test data in production** (no sign-ups, saves, purchases or rows of your own there): they
-  become real records among the real users'. Check production with a page load (and `?offline=1`); do sign-up, saves and
-  other writes on development.
+- **Never create test users or test data in production** (no sign-ups, saves, purchases or rows of your own there): they become
+  real records among the real users'. Check production with a page load (and `?offline=1`); do sign-up, saves and other writes on development.
 - `kumodeck deployments --env <env>` lists versions; `*` marks the live one.
 - Headers and redirects: a `_headers` / `_redirects` file at the root of the deployed folder works as on Cloudflare
   (same format and limits; e.g. COOP/COEP, CSP, `Cache-Control`, `/old /new 301`). Lines KUMODeck skipped come back in
@@ -405,11 +409,9 @@ KUMODeck builds Next.js apps with **vinext** (Cloudflare's Next.js on Vite) — 
   `--image-optimization=none`); images are then served as they are.
 - Secrets in `cloudflare.config.ts` are not sent: ask the user for each value the same way as every Skill (`INDEX.md` →
   "Asking for a key": `functions_secret_set` without a value; in a terminal `kumodeck functions secret put NAME --env <env>`).
-  Text / JSON values are sent as vars. Service bindings, Durable Objects and the other things in "What does not work"
-  stop the deploy with the key to remove.
+  Text / JSON values are sent as vars. Service bindings, Durable Objects and the other things in "What does not work" stop the deploy with the key to remove.
 - An older vinext app with `wrangler.jsonc` (no `cloudflare.config.ts`) is built with `vite build` and bundled with
-  wrangler. If its build has no Worker, the deploy says so: remove `wrangler.jsonc`, run the `vinext init` line above,
-  deploy again.
+  wrangler. If its build has no Worker, the deploy says so: remove `wrangler.jsonc`, run the `vinext init` line above, deploy again.
 
 **OpenNext (the fallback)** — when vinext check lists things you cannot change yet, when vinext does not work after
 deploying, or when the user chose OpenNext (`kumodeck deploy --next opennext`, which needs `next` in `package.json`).
@@ -486,13 +488,11 @@ balance; the user's own domain is $0.11 a month per domain (the domain itself is
 
 ## Security
 
-- Deploy only the project's public folder: never upload `.kumo/`, `.env`, `.dev.vars` or anything with a secret key.
-  Everything in the uploaded folder is public.
+- Deploy only the project's public folder: never upload `.kumo/`, `.env`, `.dev.vars` or anything with a secret key. Everything in the uploaded folder is public.
 - Never put a key from any service (AI, payments, database, mail, cloud, your own `sk_`) in browser code: anyone can read it
   and use it on the user's bill. Keys come in through the chat box (`INDEX.md` → "Keys from any service") and only Functions use
   them; the browser calls a function. Only public keys (`pk_`, Supabase publishable / anon, Firebase `apiKey`) belong in page code.
   `kumodeck deploy` and KUMODeck stop a deploy that contains a saved key, a known secret-key shape or key-like random text
   (`secret_like_content`); `--allow-secret-like` is only for values the user confirmed are meant to be public.
-- CI deploys with a secret key from the CI's secret store (`KUMO_SECRET_KEY`, the key decides the environment);
-  never paste a key into a workflow file or print it.
+- CI deploys with a secret key from the CI's secret store (`KUMO_SECRET_KEY`, the key decides the environment); never paste a key into a workflow file or print it.
 - Production changes (deploy, rollback, config push) only when the user asks.

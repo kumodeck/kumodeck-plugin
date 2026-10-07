@@ -40,6 +40,14 @@ Scores and personal bests that go on the board are kept in D1, never in `saves` 
 
 Do not pick silently. If the creator says "you choose", use limits + rate limit (30 / minute) and tell them.
 
+**After building, add one line with what else they can ask for** (1–2 sentences, plain words, never naming what you
+just built; the closing line of `deploy` §1 stays last). Pick from what this recipe really does and they did not get:
+the weekly or daily list, one board per stage or mode, a stronger check against cheating (the server times each play,
+or checks the moves), or letting players pick a name shown on the board (the `user-login` Skill). E.g.
+「今週・今日のランキングや、ステージごとのランキング、ずるをもっと強く止める仕組みも付けられます。言ってくれれば作ります」.
+Only name things from the dashboard's guide list (online multiplayer, leaderboards, sign-in, saving, server code and a
+database, your own domain, a card on X).
+
 ## 2. Server side (Functions)
 
 1. Find the Functions folder (it has `wrangler.jsonc` with a `DB` database and `src/kumo.ts`). If there is none, create

@@ -54,6 +54,14 @@ only when you truly cannot decide, and then only one question. The four choices 
 Defaults: one slot per kind of data, autosave, merge (union for lists, higher for game numbers, this device for plain
 settings), keep the account's data on sign-in. Never pick silently: the one line says what you chose.
 
+Then add **one line with what else they can ask for** (1–2 sentences, plain words, never naming what you just built; the
+closing line of `deploy` §1 stays last). Pick the next step closest to what you built: no sign-in yet → name signing in
+with email or Google so the data follows them to another device (the `user-login` Skill); data that others see or must not
+be changed by hand → name keeping it on the server (the `functions-d1` Skill); a game with scores → name a leaderboard. E.g.
+「メールや Google でログインすれば別の端末でも続きから使えます。みんなで見るデータはサーバー側に置くこともできます。言ってくれれば作ります」.
+Only name things from the dashboard's guide list (online multiplayer, leaderboards, sign-in, saving, server code and a
+database, your own domain, a card on X).
+
 **Saves or the creator's database?** ("save it in a DB", "store it on the server" means one of these two.)
 The browser writes saves, so a modified page can write anything into them. Pick by who may change the data:
 

@@ -299,6 +299,12 @@ If a Skill named here is not in `INDEX.md` yet, use the matching recipe in `AGEN
 
 Turn on only what a request needs (`kumodeck features on <name>` then `kumodeck config push`), and tell the user what you turned on.
 
+**After the first version is on the test app**, add one line before the closing line (that line stays last) naming two
+or three next things they can ask for, picked to fit what they made, never what it already has: for a game, online
+multiplayer, a leaderboard, sign-in; for an app, sign-in, data shared by everyone on the server; their own domain. Use the
+names from the dashboard's guide (online multiplayer, leaderboards, sign-in, saving, server code and a database, your own
+domain, a card on X) and plain words. E.g. 「オンライン対戦、ランキング、ログインも付けられます。言ってくれれば作ります」.
+
 ## Money and cost
 
 - KUMODeck bills what the project uses **at cost** (KUMODeck's usage fee, no markup, no free tier) from the prepaid balance.
