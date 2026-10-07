@@ -261,12 +261,12 @@ for Functions only. The MCP tool `functions_logs` returns the same. Each line is
 ## 9. Cost and data
 
 - Requests, CPU time, database rows read / written and storage are billed as KUMODeck's usage fee, at cost, from prepaid
-  credit (roughly $0.60 a month for a small project: 1 million requests, 100 MB of data). Add indexes for the queries
+  credit (roughly $0.66 a month for a small project: 1 million requests, 100 MB of data). Add indexes for the queries
   you run often (fewer rows read = cheaper and faster).
 - What is in the database is the creator's to manage, including deleting a user's rows when they ask.
 - Durable Objects: requests, running time, rows and data kept, at cost (section 10, "Cost"). An object that is asleep
   costs nothing but its stored data.
-- Logs: each line the code prints is billed as KUMODeck's usage fee at cost ($0.60 per million lines); printing nothing costs
+- Logs: each line the code prints is billed as KUMODeck's usage fee at cost ($0.66 per million lines); printing nothing costs
   nothing. Lines are kept 7 days, then deleted. **Never log personal data or secrets** (emails, passwords, access tokens,
   API keys, payment details, anything a user would not want others to see): everyone who can read the project's logs,
   including AI agents allowed to, sees them. Log IDs and error messages. Do not log inside a hot loop or on every request
@@ -348,14 +348,16 @@ everyone on KUMODeck and given back at the end of the month):
 
 | What | Price |
 |---|---|
-| Requests (each HTTP call, and opening a WebSocket) | $0.15 per million |
+| Requests (each HTTP call, and opening a WebSocket) | $0.165 per million |
 | Messages users send to it | 20 messages = 1 request (messages it sends out are free) |
-| Running time | $12.50 per million GB-seconds (one object = 0.128 GB: one second awake ≈ $0.0000016). Asleep between messages = free |
-| Storage rows read / written | $0.001 / $1.00 per million rows |
-| Data kept | $0.20 per GB a month |
+| Running time | $13.75 per million GB-seconds (one object = 0.128 GB: one second awake ≈ $0.0000018). Asleep between messages = free |
+| Storage rows read / written | $0.0011 / $1.10 per million rows |
+| Data kept | $0.22 per GB a month |
+
+Prices are at cost, including the tax our providers add.
 
 Example to tell the user: a 4-player match of 10 minutes, each player sending 1 move a second and the server saving each
-move: about $0.005 per match (half a cent), so 1,000 matches ≈ $5. The biggest part is usually rows written: save the
+move: about $0.0055 per match (about half a cent), so 1,000 matches ≈ $5.50. The biggest part is usually rows written: save the
 board once per move, not once per message, and keep chat or cursor messages out of storage. `kumodeck usage` shows the
 month.
 

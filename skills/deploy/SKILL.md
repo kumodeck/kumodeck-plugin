@@ -266,7 +266,7 @@ All take `--env production` for the live app (default: development). `kumodeck f
 - Own domain (`play.mygame.com`; the CLI adds it to production): `kumodeck features on customDomains` →
   `kumodeck config push --env production` → `kumodeck hosting domains add play.mygame.com`. It prints a CNAME and a TXT record:
   **the user** adds both where they manage the domain (you cannot). Then `kumodeck hosting domains status play.mygame.com`
-  until it is `active`. The `<slug>` URL keeps working. Using the domain on KUMODeck costs $0.10 a month per domain (the certificate
+  until it is `active`. The `<slug>` URL keeps working. Using the domain on KUMODeck costs $0.11 a month per domain (the certificate
   and serving on it), from the prepaid balance by the day; the domain itself is paid where it was bought. Remove unused ones with `kumodeck hosting domains remove <host>` (asks first).
   - Several apps on one domain, each at its own path: from each app's folder, `kumodeck hosting domains add mygame.com/race`
     (`mygame.com` alone = the root). Only apps of the same account; on a domain one of them already has there is no DNS step and
@@ -482,7 +482,7 @@ deploying, or when the user chose OpenNext (`kumodeck deploy --next opennext`, w
 ## Cost
 
 Hosting (stored files and reads), Functions and server-rendered apps (requests and CPU) are billed at cost (KUMODeck's usage fee) from the prepaid
-balance; the user's own domain is $0.10 a month per domain (the domain itself is paid where it was bought). Old versions are kept so rollback is instant.
+balance; the user's own domain is $0.11 a month per domain (the domain itself is paid where it was bought). Old versions are kept so rollback is instant.
 
 ## Security
 

@@ -160,7 +160,7 @@ range (`--since 15m`, `--level error`, `--search`) instead of reading everything
 wait a few seconds, then read once.
 Nothing there? Logs show only what the code prints: add a `console.error` with the failing step and the error (not the
 user's personal data or any secret), deploy to development, and try again. Logs are part of the usage fee at cost
-($0.60 per million lines; the display name is "Logs").
+($0.66 per million lines; the display name is "Logs").
 
 ## 4. Check it is fixed
 
