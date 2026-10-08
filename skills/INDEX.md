@@ -24,7 +24,7 @@ from top to bottom and follow it. The other files in that folder are the code to
 | leaderboard | [`leaderboard/SKILL.md`](leaderboard/SKILL.md) | a leaderboard, ranking, high scores, best times, weekly / daily rankings, "my rank" |
 | chat | [`chat/SKILL.md`](chat/SKILL.md) | chat, messages between players, a lobby or party chat, chat history |
 | user-data | [`user-data/SKILL.md`](user-data/SKILL.md) | saving or syncing each user's data (settings, drafts, favorites, a game's progress), autosave, continue on another device |
-| user-login | [`user-login/SKILL.md`](user-login/SKILL.md) | login, sign in / sign up, user accounts, keeping a guest's data, Google / Discord / Apple / X sign-in, an account screen, ban appeals |
+| user-login | [`user-login/SKILL.md`](user-login/SKILL.md) | login, sign in / sign up, user accounts, keeping a guest's data, KUMODeck / Google / Discord / Apple / X sign-in, an account screen, ban appeals |
 | functions-d1 | [`functions-d1/SKILL.md`](functions-d1/SKILL.md) | their own server code (a server-side API / 「API を作って」, webhooks, cron) and SQL database, verifying the calling player, tables and migrations |
 | limits | [`limits/SKILL.md`](limits/SKILL.md) | something refused as too big, too many or too fast (413 `*_too_large`, 400 `too_many_variables`, 429 `rate_limited`), how big / how many / how fast it can be, planning something large, why the app stopped when the prepaid balance ran out (auto top-up) |
 

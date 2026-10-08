@@ -1,13 +1,13 @@
 ---
 name: user-login
-description: Add user sign-in to this app or game with kumo.auth — use it as a guest first, then keep the data by adding an email + password, Google, Discord, Apple or X; sign in on another device; manage sign-in methods; password reset; display names; banned users and ban appeals. Use when the user asks for login, sign in, sign up, user accounts, a members area, "keep my data across devices", sign in with Google / Discord / Apple / X, a profile or account screen, or ban appeals.
+description: Add user sign-in to this app or game with kumo.auth — use it as a guest first, then keep the data by adding an email + password, KUMODeck, Google, Discord, Apple or X; sign in on another device; manage sign-in methods; password reset; display names; banned users and ban appeals. Use when the user asks for login, sign in, sign up, user accounts, a members area, "keep my data across devices", sign in with KUMODeck / Google / Discord / Apple / X, a profile or account screen, or ban appeals.
 ---
 
 # User sign-in with `kumo.auth`
 
 People start using the app or game **before** they sign up: `Kumo.init()` (inside `connectKumo()` in
 `kumo-boot.js`) creates a guest on the first visit and resumes it after that. When their data matters to them,
-they **add** a sign-in method to the same user — email + password, Google, Discord, Apple or X — and keep everything
+they **add** a sign-in method to the same user — KUMODeck, email + password, Google, Discord, Apple or X — and keep everything
 (their stored data). On another device they sign in with that method and get the same user back.
 
 Signing in does not change where the data lives, and a signed-in user can still write their own `saves`:
@@ -29,6 +29,10 @@ The code and the screens are the creator's. KUMODeck keeps the sessions, passwor
 ## 1. Ask the creator first (they decide; offer these as choices, one short message)
 
 1. **Which ways to sign in** (any mix; guest use is always there):
+   - **KUMODeck** — one tap, and **nothing to set up**: no app to register, no keys. Users sign in with one KUMODeck
+     account (an email link or code, Google, Discord or X) that also works in other apps made with KUMODeck. The app
+     gets an ID made just for it and the user's display name, never their email. Recommend this first when the creator
+     wants one-tap sign-in without the setup below.
    - **Email + password** — works everywhere, no setup outside KUMODeck.
    - **Google / Discord / Apple / X** — one tap for users, but **the creator** registers an OAuth app with each
      provider and pastes its client id / secret in the dashboard (**Sign-in methods**). Apple needs a paid Apple
@@ -37,6 +41,7 @@ The code and the screens are the creator's. KUMODeck keeps the sessions, passwor
      paste the two texts it shows (an ID and a long password-like text) on the dashboard page Sign-in methods. Not into
      this chat." / 「Google のサイトでログイン用のアプリを作り、出てくる 2 つの文字列（ID と長いパスワードのような文字列）を、
      ダッシュボードの『サインイン方法』のページに貼ってください。このチャットには貼らないでください」
+     If the creator would rather not register anything, KUMODeck sign-in (above) needs none of this.
 2. **When to offer it**: a "Sign in" / "Keep my data" button in the menu, and/or a prompt at a natural moment (the first
    saved item, the first finished level). Guest use needs no sign-in; a members-only page can show
    the sign-in form first instead.
@@ -52,8 +57,8 @@ display name on, account screen with sign out / delete / download, appeal form �
 
 **After building, add one line with what else they can ask for** (1–2 sentences, plain words, never naming what you
 just built; the closing line of `deploy` §1 stays last). Pick the next step closest to what you built: email only → name
-one-tap sign-in with Google / Discord / Apple / X; sign-in without saved data yet → name keeping each person's progress so
-they can pick up where they left off on another device (the `user-data` Skill). E.g. 「Google や X でワンタップでログインできる
+one-tap sign-in with KUMODeck (nothing to register) or Google / Discord / Apple / X; sign-in without saved data yet → name keeping each person's progress so
+they can pick up where they left off on another device (the `user-data` Skill). E.g. 「KUMODeck でワンタップでログインできる（何も登録しなくてよい）
 ようにしたり、スマホとパソコンで続きから遊べるようにしたりもできます。言ってくれれば作ります」. Only name things from the dashboard's
 guide list (online multiplayer, leaderboards, sign-in, saving, server code and a database, your own domain, a card on X).
 
@@ -68,7 +73,13 @@ Emails to users (confirm the email, reset the password) show the **project's nam
 `kumodeck init` set it (`--name`; without it, the folder's name, e.g. `app`). Check it in `kumodeck init --json` (`project.name`)
 or on the dashboard before turning on email sign-in; if it is a folder-like name, tell the user in one line.
 
-Providers are switched in `kumo.config.json` (not under `features`), after **the user** saved the credentials in the
+KUMODeck sign-in needs no credentials — turn it on directly:
+
+```json
+{ "auth": { "providers": { "kumodeck": { "enabled": true } } } }
+```
+
+Other providers are switched in `kumo.config.json` (not under `features`), after **the user** saved the credentials in the
 dashboard under **Sign-in methods**:
 
 ```json
@@ -123,9 +134,15 @@ button.onclick = async () => {
   else if (!g.ok) showError(message(g));
 };
 
+// "Continue with KUMODeck" works the same way: continueWith(kumo, 'kumodeck') (guest → link, data kept; signed in → sign in)
+
 // "I already have an account" (switches to that user; the guest's data stays with the guest — see the user-data Skill)
 const s = await signInWithEmail(kumo, email, password);
 ```
+
+KUMODeck sign-in also works inside X's in-app browser (users can sign in with an email code there). Where popups are
+blocked, `continueWith(kumo, provider, { mode: 'redirect' })` moves to the sign-in page in the same tab and comes back
+(flush unsaved data first; `redirectResult(kumo)` after the reload).
 
 The same with the SDK directly (what the helpers call):
 
@@ -148,7 +165,7 @@ Other calls the account screen uses:
 | Call | What it does |
 |---|---|
 | `kumo.auth.signUpWithEmail(email, password, displayName?)` | a new account without a guest phase (the helper uses it when nobody is signed in) |
-| `kumo.auth.signInWithProvider(p, { mode })` / `kumo.auth.linkProvider(p, { mode })` | `p` = `'google' \| 'discord' \| 'apple' \| 'x'`; `mode: 'redirect'` reloads the page — flush unsaved data first |
+| `kumo.auth.signInWithProvider(p, { mode })` / `kumo.auth.linkProvider(p, { mode })` | `p` = `'kumodeck' \| 'google' \| 'discord' \| 'apple' \| 'x'`; `mode: 'redirect'` reloads the page — flush unsaved data first |
 | `kumo.auth.completeRedirectSignIn()` | after a redirect: `{ player, provider, linked }` or `null` (Kumo.init already picked it up) |
 | `kumo.auth.identities()` / `kumo.auth.unlinkIdentity(p)` | list / remove a method (`p` also `'email'`); removing signs out the user's other devices |
 | `kumo.auth.resendVerification()` · `kumo.auth.player.emailVerified` | the confirmation email for an email sign-in (the link returns to the page and is handled by `Kumo.init`) |

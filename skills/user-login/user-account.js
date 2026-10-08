@@ -20,9 +20,9 @@
  */
 
 /** Sign-in methods a user can add (besides being a guest). */
-export const METHODS = ['email', 'google', 'discord', 'apple', 'x'];
+export const METHODS = ['email', 'kumodeck', 'google', 'discord', 'apple', 'x'];
 
-const NAMES = { email: 'email', google: 'Google', discord: 'Discord', apple: 'Apple', x: 'X' };
+const NAMES = { email: 'email', kumodeck: 'KUMODeck', google: 'Google', discord: 'Discord', apple: 'Apple', x: 'X' };
 
 /** What the account screen needs to know about the current user. */
 export function accountSummary(kumo) {
