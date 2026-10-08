@@ -253,7 +253,8 @@ kumodeck deploy --env production          # deploy's default is development: say
 ```
 
 Each production change opens a confirmation page in the user's browser (or prints the link when it cannot) and waits: **they**
-confirm once there; the command then finishes by itself (the `deploy` Skill). Until they say it: stay on development.
+confirm once there; the command then finishes by itself (the `deploy` Skill). Then give the URL it prints in one line:
+"Published: https://…" (「公開しました: https://…」). Until they say it: stay on development.
 
 Everything in KUMODeck is **off until turned on** (guest sign-in always works). The template's `kumo.config.json` turns on
 what it uses (`hosting`, `saves`, `stats`; `multiplayer` in the multiplayer templates). Push it to **each** environment

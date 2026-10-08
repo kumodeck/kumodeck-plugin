@@ -41,10 +41,10 @@ all test-only and previous-refusal safeguards still apply.
 - **While working, never show tool argument names or inside words** (`everyone`, "test app only", `prepare`, `uploadId`,
   `--env`): say what is happening in plain words ("Putting it on your test app…" / 「テスト用のアプリに出しています…」).
 - **A note for the history** (optional): `-m "new boss fight"` shows up in `kumodeck deployments`.
-- **After publishing to everyone** (the production deploy finished; never after a test publish, whose closing line has
-  nothing added), add one line with what else they can ask for (1–2 sentences, plain words, never naming what they
-  already have): publishing on their own domain (§7), the image-and-title card when the link is posted on X (§4, if the
-  page has no card tags yet), or keeping a test version to try changes before everyone sees them. E.g.
+- **After publishing to everyone** (production finished; never after a test publish): first the published URL in one line,
+  "Published: https://…" / 「公開しました: https://…」 (the URL the deploy prints or `tellTheUser`; never guess it). Then one
+  line with what else they can ask for (1–2 sentences, plain words, never what they already have): their own domain (§7),
+  the image-and-title card on X (§4, if the page has no card tags yet), or a test version to try changes first. E.g.
   「自分のドメイン（play.example.com など）で公開したり、X に貼ったときに画像付きのカードが出るようにしたりもできます。言ってくれれば設定します」.
 
 ## Codex: publishing intent and the one human confirmation

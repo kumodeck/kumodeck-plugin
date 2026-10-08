@@ -1,0 +1,50 @@
+{
+  "name": "kumodeck",
+  "version": "1.0.0",
+  "description": "Build a web app or game and put it online with KUMODeck, from the chat: step-by-step guides for publishing, saves, sign-in, online multiplayer, rankings and chat, plus the KUMODeck connector.",
+  "author": {
+    "name": "KUMODeck",
+    "email": "support@kumodeck.com",
+    "url": "https://kumodeck.com"
+  },
+  "homepage": "https://kumodeck.com",
+  "repository": "https://github.com/kumodeck/kumodeck-plugin",
+  "license": "MIT",
+  "keywords": [
+    "kumodeck",
+    "games",
+    "web-apps",
+    "hosting",
+    "multiplayer",
+    "game",
+    "gamedev",
+    "browser-games",
+    "web-games",
+    "mcp"
+  ],
+  "skills": "./skills/",
+  "mcpServers": "./.mcp.json",
+  "interface": {
+    "displayName": "KUMODeck",
+    "shortDescription": "Build and publish web games",
+    "longDescription": "Create web games and apps with KUMODeck from your conversation. Publish a test app, add online multiplayer, saves or shared rankings, and update your app. Approve extra permissions when needed. Publishing to the public app requires confirmation. New accounts currently require an invitation. Existing accounts can connect.",
+    "developerName": "KUMODeck",
+    "category": "Developer Tools",
+    "capabilities": [
+      "Interactive",
+      "Read",
+      "Write"
+    ],
+    "websiteURL": "https://kumodeck.com",
+    "privacyPolicyURL": "https://kumodeck.com/docs/privacy/",
+    "termsOfServiceURL": "https://kumodeck.com/docs/terms/",
+    "defaultPrompt": [
+      "Build and publish a simple boat race to my test app.",
+      "Add online multiplayer to my game.",
+      "Show my apps and recent server logs."
+    ],
+    "composerIcon": "./assets/kumodeck-icon.png",
+    "logo": "./assets/kumodeck-icon.png",
+    "screenshots": []
+  }
+}

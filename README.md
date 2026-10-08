@@ -77,6 +77,18 @@ Then press **Connect** next to `kumodeck` and sign in to KUMODeck.
 Once the listing is live, you can instead find **KUMODeck** in the Cursor Marketplace (the **Customize** page), press
 **Install**, and sign in to KUMODeck when the window opens.
 
+## Codex
+
+In the Codex CLI, type this in your terminal:
+
+```
+codex plugin marketplace add kumodeck/kumodeck-plugin
+codex plugin add kumodeck@kumodeck
+```
+
+Or, inside the Codex CLI, enter `/plugins`, pick **KUMODeck** and install it. Sign in to KUMODeck when the window opens,
+then start a new session and ask, for example: "Build a small puzzle game on KUMODeck and put it online."
+
 ## What the connector can do
 
 The connector lives at `https://mcp.kumodeck.com/mcp` (streamable HTTP). The first time, you sign in to KUMODeck in your
@@ -122,6 +134,7 @@ Privacy: <https://kumodeck.com/privacy> · Terms: <https://kumodeck.com/terms>
 | `.mcp.json` | The KUMODeck connector address |
 | `.claude-plugin/` | The plugin's name card and the list Claude Code reads with `/plugin marketplace add` |
 | `.cursor-plugin/`, `mcp.json` | The plugin's name card and the connector address for Cursor |
+| `.codex-plugin/`, `.agents/plugins/` | The plugin's name card and the list Codex reads with `codex plugin marketplace add` |
 | `assets/` | The KUMODeck logo and icon |
 
 ## Help
