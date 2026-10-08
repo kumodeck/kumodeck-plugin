@@ -1,7 +1,8 @@
 {
   "name": "kumodeck",
   "displayName": "KUMODeck: Web Games & Apps",
-  "description": "Build a web app or game and put it online with KUMODeck, from the chat: step-by-step guides for publishing, saves, sign-in, online multiplayer, rankings and chat, plus the KUMODeck connector.",
+  "version": "1.0.0",
+  "description": "Build a web app or game and put it online with KUMODeck, from the chat: step-by-step guides for publishing, saves, sign-in, online multiplayer, rankings and chat, plus the KUMODeck connector. ブラウザで遊べるゲームやWebアプリを、チャットから作って公開できます。",
   "author": {
     "name": "KUMODeck",
     "email": "support@kumodeck.com"
@@ -18,11 +19,18 @@
     "multiplayer",
     "game",
     "gamedev",
+    "browser-games",
+    "web-games",
+    "ゲーム",
+    "ゲーム制作",
+    "ブラウザゲーム",
     "mcp"
   ],
   "category": "integrations",
   "tags": [
     "games",
+    "game",
+    "gamedev",
     "web-apps",
     "hosting",
     "multiplayer",

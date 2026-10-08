@@ -47,13 +47,22 @@ Connectors added on the web or the desktop app also work in the Claude phone app
 2. Open **Plugins**, press **+**, give it the name `KUMODeck` and paste this address: `https://mcp.kumodeck.com/mcp`
 3. Sign in to KUMODeck when the window opens.
 
+## Grok Bot
+
+KUMODeck is waiting for review before it appears in Grok Bot's **Connect apps** list. Until then, add the connector
+yourself:
+
+1. In a chat with your Bot, send: `Add this MCP server: https://mcp.kumodeck.com/mcp`
+2. Confirm when the Bot asks, then sign in to KUMODeck in the browser window that opens.
+3. From your next message, the Bot can use KUMODeck. Try: "Build a small puzzle game on KUMODeck and put it online."
+
+Once the listing is live: open **Connect apps**, search for **KUMODeck**, add it, and sign in to KUMODeck.
+
 ## Cursor
 
-Find **KUMODeck** in the Cursor Marketplace (the **Customize** page), press **Install**, and sign in to KUMODeck when
-the window opens.
-
-Or add only the connector: open **Cursor Settings**, go to the MCP section (**Tools & MCP**), choose **Add custom MCP**,
-and put this in the file that opens (`~/.cursor/mcp.json`):
+The KUMODeck plugin for the Cursor Marketplace is pending review, so it is not in the **Customize** page yet. Until it
+is listed, add the connector yourself: open **Cursor Settings**, go to the MCP section (**Tools & MCP**), choose
+**Add custom MCP**, and put this in the file that opens (`~/.cursor/mcp.json`):
 
 ```json
 {
@@ -64,6 +73,46 @@ and put this in the file that opens (`~/.cursor/mcp.json`):
 ```
 
 Then press **Connect** next to `kumodeck` and sign in to KUMODeck.
+
+Once the listing is live, you can instead find **KUMODeck** in the Cursor Marketplace (the **Customize** page), press
+**Install**, and sign in to KUMODeck when the window opens.
+
+## What the connector can do
+
+The connector lives at `https://mcp.kumodeck.com/mcp` (streamable HTTP). The first time, you sign in to KUMODeck in your
+browser (OAuth); no key is pasted into the chat.
+
+What the AI can do with it:
+
+| Group | What it does |
+| --- | --- |
+| Guides | Read KUMODeck's own how-to guides (`guide_read`) |
+| Projects | List your projects, create or rename one, see an overview, check or pick its URL name, publish a game (`projects_list`, `project_*`, `publish_game`) |
+| Settings | Read, check and save a project's settings (`config_*`) |
+| Hosting and releases | Put an app or game online, upload a page, list releases and switch back to an earlier one, add or remove your own domain (`hosting_*`, `deployments_list`, `deploy_activate`) |
+| Server code and database | Turn on server code (Functions), deploy it, see its status and logs, read and change its database, run migrations, set or remove its secrets, manage its domains (`functions_*`) |
+| Players | Look up your app's players and read ban appeals (`players_search`, `player_get`, `appeals_list`) |
+| Sharing | Turn on sharing, make share links, see share stats and tags (`share_*`) |
+| Balance and usage | Read your prepaid balance and usage (`prepaid_get`, `usage_get`, `usage_daily`) |
+| Confirmations | Continue an action after you confirmed it (`pending_action_continue`) |
+
+**Changes to the live (production) version ask you to confirm first.** Nothing goes to production until you approve it.
+
+Permissions (OAuth scopes) the sign-in asks for:
+
+| Scope | Lets the AI |
+| --- | --- |
+| `read:projects` | See your projects |
+| `read:reports` | See how many people came from your share links on X |
+| `read:players` | Look up your app's players |
+| `read:payouts` | See your usage fees and prepaid balance |
+| `write:config` | Change project settings |
+| `deploy` | Put a version online or switch versions |
+| `read:functions` | See your server code and its status |
+| `read:logs` | Read logs |
+| `write:functions` | Deploy and change server code, its database and its secrets |
+
+Privacy: <https://kumodeck.com/privacy> · Terms: <https://kumodeck.com/terms>
 
 ## What is inside
 

@@ -121,6 +121,11 @@ Endpoints (all JSON; errors are `{ "error": "<code>" }`):
    page loaded at run time (the `start` Skill, "Already have an app" step 5).
 3. Names come from the player's display name when they submit. Let players set one (`kumo.auth` / the game's own UI)
    so the list does not fill up with empty names; render names as text, never as HTML.
+   **X pictures on the board** (games with X sign-in, if the creator wants them): the list leaves out player ids on
+   purpose, so add them first — in `leaderboard.ts`, `TOP` selects `player_id AS playerId` too and `top()` puts
+   `playerId: r.playerId` in each entry. Then `const rows = await kumo.x.withProfiles(entries)`: `row.xProfile` is
+   `{ username, name, avatarUrl }` only for players who turned on "show my X profile" (`user-login` Skill, X name and
+   picture), else `null` (show the plain name). Imported rows never match.
 4. The game's own KUMODeck URLs (development, production, its verified custom domain) and `web.allowedOrigins` may call the
    Functions: KUMODeck sets them (`KUMO_ALLOWED_ORIGINS`) and updates them when those change. If it could not,
    `kumodeck functions status` says to deploy again. Any other site needs its origin in `ALLOWED_ORIGINS` in `wrangler.jsonc` `vars`.

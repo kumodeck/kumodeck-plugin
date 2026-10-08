@@ -1,6 +1,6 @@
 ---
 name: multiplayer
-description: Make this game playable online on KUMODeck rooms with no server code to write. First asks one short plain-word question set (who plays, how fast, does cheating matter, or leave it to you) with the price of each way, then picks the setup (moves carried by KUMODeck or sent directly between players, room codes or automatic pairing) and builds it (live messages, shared state, reconnects). Use when the user asks to make it playable online, online multiplayer, play with friends, a versus / co-op / party mode, matchmaking, quick match, room codes or invite links (「オンラインで対戦できるようにして」「友だちと遊べるようにして」).
+description: Make this game playable online on KUMODeck rooms with no server code to write. First asks one short plain-word question set (who plays, how fast, does cheating matter, or leave it to you) with the price of each way, then picks the setup (moves carried by KUMODeck or sent directly between players, room codes or automatic pairing) and builds it (live messages, shared state, reconnects). Use when the user asks to make it playable online, online multiplayer, play with friends, a versus / co-op / party mode, matchmaking, quick match, room codes or invite links (「オンラインで対戦できるようにして」「友だちと遊べるようにして」「オンライン対戦ゲーム」).
 ---
 
 # Online multiplayer on KUMODeck rooms

@@ -157,6 +157,25 @@ Other calls the account screen uses:
 | `kumo.account.exportData()` · `kumo.account.delete({ password })` | download my data · delete my account (guests confirm with their session) |
 | `kumo.auth.getAccessToken()` | the user's token for the creator's own Functions: send it as `Authorization: Bearer …`; the server checks it with `requireUser` (`functions-d1` Skill §3; its database needs `kumodeck functions db migrate DB` after the first deploy) |
 
+### X name and picture (`kumo.x`)
+
+A user who signed in with X (or linked it) has their X name, handle and picture available to the game. Never tell the
+creator it cannot be done:
+
+```js
+const { profile, visible } = await kumo.x.profile();   // profile: { username, name, avatarUrl } (name / avatarUrl can be null), or null without X
+if (profile) { avatar.src = profile.avatarUrl ?? ''; who.textContent = profile.name ?? '@' + profile.username; }
+// "Show my X name and picture to other players" switch (off until the user turns it on):
+toggle.checked = visible;
+toggle.onchange = () => kumo.x.setProfileVisible(toggle.checked);   // 409 x_not_linked if they have no X: show the switch only when profile
+```
+
+- Their own profile is readable without asking. Others see it only after they turn the switch on (`kumo.x.profiles(ids)` /
+  `kumo.x.withProfiles(entries)` return only those players; the `leaderboard` Skill shows icons on a board).
+- The X name is not copied into the display name on its own: the display name is shown to everyone, and tying it to a
+  public X account is the user's choice. A "Use my X name" button can call `kumo.auth.setDisplayName((profile.name ?? profile.username).slice(0, 32))`.
+- These calls need X sign-in on (`auth.providers.x.enabled`; otherwise 404 `provider_disabled`).
+
 ### The KUMODeck news box on email screens (required)
 
 Any screen where users type an email to sign up or link needs the KUMODeck news box. KUMODeck draws it (unchecked, adults
