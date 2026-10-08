@@ -248,12 +248,13 @@ first; when the user, after trying it, says "publish it" / 「公開して」 (o
 
 ```sh
 kumodeck config check --env production    # no confirmation: it saves nothing
-kumodeck config push --env production
-kumodeck deploy --env production          # deploy's default is development: say --env production for the live app
+kumodeck publish                          # settings + server (./functions) + the app, one confirmation
 ```
 
-Each production change opens a confirmation page in the user's browser (or prints the link when it cannot) and waits: **they**
-confirm once there; the command then finishes by itself (the `deploy` Skill). Then give the URL it prints in one line:
+Production changes open a confirmation page in the user's browser (or print the link when they cannot) and wait: **they**
+confirm once there; the command then finishes by itself (the `deploy` Skill). Put the whole update into that one
+`kumodeck publish` so the user presses one button: do not run `config push`, `functions …` and `deploy` with
+`--env production` one by one (each opens its own confirmation page). Then give the URL it prints in one line:
 "Published: https://…" (「公開しました: https://…」). Until they say it: stay on development.
 
 Everything in KUMODeck is **off until turned on** (guest sign-in always works). The template's `kumo.config.json` turns on

@@ -23,9 +23,11 @@ all test-only and previous-refusal safeguards still apply.
 - **Which environment.** After you make or fix something, put it on the test app without being asked (`kumodeck test-deploy`: development only, it takes no `--env`), show
   the URL and end with the closing line below. Production is what people see: do not publish there on your own.
 - **"Publish it" / "公開して" / "ship" / "go live" / "本番" (or the like), said after the user has seen the test app** → publish to
-  the published app: run `next` from the output (`kumodeck deploy --env production`) right away, the production steps below.
+  the published app: run `next` from the output (`kumodeck publish`) right away, the production steps below.
   The user confirms it once in the browser. Features on in `kumo.config.json` (e.g. `saves`) go on in production in that
   same single confirmation. No special phrase is needed.
+- **One update, one confirmation:** the whole update (settings, server in `functions/`, app) goes in one `kumodeck publish`. Never
+  run `config push` / `functions enable` / `functions deploy` / `deploy` with `--env production` one by one (one page each).
 - **A publish request before the user has seen it** (the first request is "make it and publish it" / 「作って公開して」, or
   you just changed it): test app first, then the closing line. Never publish to everyone what the user has not seen yet.
 - **The closing line after a test publish:** one line, in the user's language, **no question and no explanation**
@@ -112,15 +114,13 @@ shape is right). Push only when it says ok.
 When the user asks to ship:
 
 ```sh
-kumodeck config check --env production            # no confirmation: it saves nothing
-# Only if config check finds other settings (beyond features) that must change:
-# kumodeck config push --env production            # separate settings confirmation; explain why it is needed
-kumodeck deploy --env production                  # deploy's default is development: production only with --env production
+kumodeck config check --env production            # no confirmation: it saves nothing (exit 1 = fix the file first)
+kumodeck publish                                  # the whole update, one confirmation: settings + server + the app
 ```
 
-For features only, `kumodeck deploy --env production` alone is enough: features that are on in `kumo.config.json` but off in
-production are turned on together with the publish (one confirmation). If deploy says the file has other changes (stats,
-products…), run `kumodeck config push --env production` for those (a separate confirmation).
+`kumodeck publish [dir]` = one confirmation for `kumo.config.json` (if it differs), the server in `./functions` (on if off + new
+code; `--functions <dir>` / `--no-functions`) and the app (as `deploy --env production`); no `--env`. Each needs its own, on
+purpose: tables for a new database (`functions db migrate <BINDING> --env production`; publish prints it), secrets, deleting, money.
 
 **The user confirms each production change once, in the browser.** With the login from `kumodeck connect` (or `kumodeck login` in the
 browser), `config push --env production`, `deploy --env production`, `rollback … --env production` and every other production
@@ -128,9 +128,9 @@ change open the confirmation page in the user's browser by themselves and wait: 
 your browser and press the button…" (with `--json`: a `{"pendingAction": { "id", "confirmUrl", "expiresAt", "opened" }}` line on stderr). Tell the user
 to press the button on the page that opened; if `opened` is false (no browser here, or `--no-open`), show them the link. Do not wait
 for them to say they pressed it: the command keeps checking and finishes by itself once they do. A deploy uploads first and asks once, just before the new version goes live; until then the
-previous version stays live. The first production deploy with `hosting` (or, for a server-rendered app, `serverRendering`) still
-off is one link too: "Confirm these 2 production changes at once" (with `--json` the line also has `"bundle": {"count": 2}`) =
-turn them on + go live, one press.
+previous version stays live. When one command makes several changes (`kumodeck publish`, or the first production deploy with
+`hosting` still off) it is still one link: "Confirm these N changes to your published app at once" (with `--json` the line
+also has `"bundle": {"count": N}`), one press for all of them.
 `--yes` does not skip it. Expired or denied: see the `troubleshoot` Skill (never work around it).
 
 Which environment each command uses when you leave out `--env` (they differ — always pass `--env` when unsure):
