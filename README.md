@@ -60,7 +60,7 @@ Once the listing is live: open **Connect apps**, search for **KUMODeck**, add it
 
 Big games (several MB, or many images, sounds or 3D models) go from the Bot's own workspace with the KUMODeck
 command-line tool: `npx kumodeck@latest login` shows a link and a code (open the link, check the code, press **Allow**),
-then the tool sends the game from the workspace (up to 50 MB per file and 500 MB in all; through the chat alone, 20 MB).
+then the tool sends the game from the workspace (100 MB per file, no limit in all; through the chat alone, 20 MB, and about 4 MB per file).
 
 ## Cursor
 

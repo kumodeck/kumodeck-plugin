@@ -32,8 +32,7 @@ all test-only and previous-refusal safeguards still apply.
   you just changed it): test app first, then the closing line. Never publish to everyone what the user has not seen yet.
 - **The closing line after a test publish:** one line, in the user's language, **no question and no explanation**
   (`testAppNote` in `kumodeck test-deploy --json` and `tellTheUser` of `publish_game` have it):
-  - Not published yet: "Test version: https://…. Say "publish it" when you want to publish." /
-    「テスト用: https://…。公開するときは『公開して』と言ってください。」
+  - Not published yet: "Test version: https://…. Say "publish it" when you want to publish." / 「テスト用: https://…。公開するときは『公開して』と言ってください。」
   - Already published: "Test version: https://…. Say "publish it" to update https://…." /
     「テスト用: https://…。公開中の https://… にも出すときは『公開して』と言ってください。」 Use the real published URL (from
     the tool result or an earlier production deploy); never guess it.
@@ -153,8 +152,8 @@ in one line when they differ. In development, push them with `kumodeck config pu
 
 **A big game where you can run commands** (an AI with its own workspace: Grok Bot, ChatGPT's agent or code runner,
 Claude's code execution on the web, Codex cloud, Claude Code on the web): a game of several MB or more, or with many
-images, sounds or 3D models, goes first with the CLI from disk (KUMODeck takes 50 MB per file and 500 MB in all; parts in
-the chat stop at 20 MB and 1,000 files). `npx kumodeck@latest login` prints a link and a code for the user ("Open this
+images, sounds or 3D models, goes first with the CLI from disk (KUMODeck takes 100 MB per file, no limit in all; parts in
+the chat stop at 20 MB and 1,000 files, about 4 MB per file). `npx kumodeck@latest login` prints a link and a code for the user ("Open this
 link. If it shows the same code, press Allow."; then `login --resume` until signed in: `start` Skill, "Signing in"). In
 the game's folder: `npx kumodeck@latest init --name "<Game name>"` (a game already here: `--project <slug>`), then
 `npx kumodeck@latest deploy <folder>` (the test app). `npx` cannot download (`ENOTFOUND`, `EAI_AGAIN`, a timeout) = no
@@ -177,7 +176,8 @@ wants it all done in the chat: no downloads, no dropping files, no settings to c
 2. **Send the files** with `projectId`: text files as `content` (plain text), images and sounds as `contentBase64`, paths
    from the site root (`index.html` at the root). About 100 KB per call: a bigger game goes **in parts** — `more: true`
    on each part, the `uploadId` from the first part's result on the next ones, and a last call without `more`, which
-   publishes. Parts take up to 20 MB, images and sounds included. End your reply with `tellTheUser` in the user's language:
+   publishes. Parts take up to 20 MB, images and sounds included; each file goes whole in one call (about 4 MB at most:
+   a 5 MB `.glb` = the CLI above or the upload page, step 6). End your reply with `tellTheUser` in the user's language:
    the closing line of §1 (`ifAskedAboutX` only if they try to post it on X or ask). While sending, say it in plain words
    ("Putting your game on the test app…"), never the argument names (`everyone`, `prepare`, `more`, `uploadId`).
 3. **Settings:** `config` = part of `kumo.config.json` (e.g. `{ "multiplayer": { "modes": [...] } }`), on any call. It is

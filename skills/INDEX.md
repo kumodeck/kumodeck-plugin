@@ -87,7 +87,8 @@ execution on the web, Codex cloud, Claude Code on the web): a game of several MB
 3D models, goes first with `npx kumodeck@latest login` (show the user the link and the code it prints: "Open this link.
 If it shows the same code, press Allow."; then `npx kumodeck@latest login --resume` until signed in) and
 `npx kumodeck@latest deploy <folder>` from the workspace's disk (`deploy` Skill §3b).
-KUMODeck takes 50 MB per file and 500 MB in all; parts through the chat (step 2) stop at 20 MB and 1,000 files. If `npx`
+KUMODeck takes 100 MB per file, no limit in all; parts through the chat (step 2) stop at 20 MB and 1,000 files, and each
+file goes whole in one call (about 4 MB at most: a 5 MB `.glb` cannot go in parts). If `npx`
 cannot download (`ENOTFOUND`, `EAI_AGAIN`, a timeout), the workspace has no internet: use parts. Parts are for smaller
 games or no commands; the upload page (step 5) only when neither works.
 
@@ -106,13 +107,14 @@ unless the steps below say so.
 2. **Send the files** with `projectId`. Text files (HTML, JS, CSS, JSON, SVG) as `content` (plain text), images and sounds
    as `contentBase64`. Keep each call to about 100 KB: send a bigger game **in parts** — `more: true` on every part and the
    `uploadId` from the first part's result on the next ones; the last call (without `more`) publishes and returns the URL.
-   Parts take up to 20 MB and 1,000 files, images and sounds included, with nothing for the user to do.
+   Parts take up to 20 MB and 1,000 files, images and sounds included, with nothing for the user to do. Each file goes
+   whole in one call (about 4 MB at most); a bigger single file (a 5 MB model) goes with the CLI (above) or the upload page.
 3. **Settings** (e.g. `multiplayer.modes`): pass part of `kumo.config.json` as `config` on any call; it is checked and merged.
    **Server code** (the `functions-d1` Skill): pass it as `functions` with the files; with **everyone** it is in the same one confirmation.
 4. **Update:** the same, with `projectId` and the new files. **Everyone** (only when the user asked for it):
    `everyone: true` on the last call; the user confirms once (in the chat or on a link); on a `confirmUrl`, call
    `publish_game` again with `pendingActionId`.
-5. **Last resort, only for a game too big to send in parts, with no commands to run** (above): call
+5. **Last resort, only for a game too big to send in parts (or with one file over about 4 MB), with no commands to run** (above): call
    `publish_game` without files; it gives a page where the user drops a zip ("Download the zip, then drop it on this
    page:" 「zip をダウンロードして、このページに落としてください」); call it again right away with `projectId` and `waitToken`.
 6. Keys for other services: "Asking for a key" below (the same box, no terminal needed).

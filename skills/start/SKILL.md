@@ -69,7 +69,7 @@ In an AI's own workspace (Grok Bot, ChatGPT's agent or code runner, Claude's cod
 Claude Code on the web), `npx kumodeck@latest <command>` works the same, sign-in included (link and code, below). Big
 games (several MB or more, many images, sounds or 3D models) go this way, `npx kumodeck@latest login` then
 `npx kumodeck@latest deploy <folder>`, not through the chat (`deploy` Skill §3b:
-KUMODeck takes 50 MB per file and 500 MB in all; parts through the chat, 20 MB). `npx` cannot download (`ENOTFOUND`,
+KUMODeck takes 100 MB per file, no limit in all; parts through the chat, 20 MB, about 4 MB per file). `npx` cannot download (`ENOTFOUND`,
 `EAI_AGAIN`, a timeout) = the workspace has no internet: publish through the chat instead.
 Every `kumodeck` command prints the next command to run; add `--json` to read results and errors (`error.code`,
 `error.hint`) as data. Exit codes: 0 ok, 1 server or connection error, 2 wrong usage (read the hint), 3 not logged in.
