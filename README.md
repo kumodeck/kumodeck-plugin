@@ -47,6 +47,24 @@ Connectors added on the web or the desktop app also work in the Claude phone app
 2. Open **Plugins**, press **+**, give it the name `KUMODeck` and paste this address: `https://mcp.kumodeck.com/mcp`
 3. Sign in to KUMODeck when the window opens.
 
+## Cursor
+
+Find **KUMODeck** in the Cursor Marketplace (the **Customize** page), press **Install**, and sign in to KUMODeck when
+the window opens.
+
+Or add only the connector: open **Cursor Settings**, go to the MCP section (**Tools & MCP**), choose **Add custom MCP**,
+and put this in the file that opens (`~/.cursor/mcp.json`):
+
+```json
+{
+  "mcpServers": {
+    "kumodeck": { "url": "https://mcp.kumodeck.com/mcp" }
+  }
+}
+```
+
+Then press **Connect** next to `kumodeck` and sign in to KUMODeck.
+
 ## What is inside
 
 | Folder or file | What it is |
@@ -54,6 +72,8 @@ Connectors added on the web or the desktop app also work in the Claude phone app
 | `skills/` | The guides. `skills/INDEX.md` lists them and says when each one is used |
 | `.mcp.json` | The KUMODeck connector address |
 | `.claude-plugin/` | The plugin's name card and the list Claude Code reads with `/plugin marketplace add` |
+| `.cursor-plugin/`, `mcp.json` | The plugin's name card and the connector address for Cursor |
+| `assets/` | The KUMODeck logo and icon |
 
 ## Help
 

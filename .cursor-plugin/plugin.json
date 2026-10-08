@@ -1,0 +1,33 @@
+{
+  "name": "kumodeck",
+  "displayName": "KUMODeck: Web Games & Apps",
+  "description": "Build a web app or game and put it online with KUMODeck, from the chat: step-by-step guides for publishing, saves, sign-in, online multiplayer, rankings and chat, plus the KUMODeck connector.",
+  "author": {
+    "name": "KUMODeck",
+    "email": "support@kumodeck.com"
+  },
+  "homepage": "https://kumodeck.com",
+  "repository": "https://github.com/kumodeck/kumodeck-plugin",
+  "license": "MIT",
+  "logo": "assets/kumodeck-icon.png",
+  "keywords": [
+    "kumodeck",
+    "games",
+    "web-apps",
+    "hosting",
+    "multiplayer",
+    "game",
+    "gamedev",
+    "mcp"
+  ],
+  "category": "integrations",
+  "tags": [
+    "games",
+    "web-apps",
+    "hosting",
+    "multiplayer",
+    "mcp"
+  ],
+  "skills": "./skills/",
+  "mcpServers": "./mcp.json"
+}
