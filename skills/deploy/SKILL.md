@@ -115,7 +115,7 @@ When the user asks to ship:
 
 ```sh
 kumodeck config check --env production            # no confirmation: it saves nothing (exit 1 = fix the file first)
-kumodeck publish                                  # the whole update, one confirmation: settings + server + the app
+kumodeck publish                                  # the whole update, one confirmation: settings + server + the app (--dry-run: only shows it)
 ```
 
 `kumodeck publish [dir]` = one confirmation for `kumo.config.json` (if it differs), the server in `./functions` (on if off + new
@@ -178,11 +178,11 @@ files, no settings to change (the upload page in step 6 is the only exception, a
    argument names (`everyone`, `prepare`, `more`, `uploadId`).
 3. **Settings:** `config` = part of `kumo.config.json` (e.g. `{ "multiplayer": { "modes": [...] } }`), on any call. It is
    merged into the current settings (objects merge, lists replace), checked like a push, and refused with the path if
-   something is wrong (nothing changes).
+   something is wrong (nothing changes). **Server code**: `functions` with the files (one ES module as `content`; `functions-d1` Skill).
 4. **Production (everyone).** Same rule as §1: only when the user says "publish it" / 「公開して」 (or the like) after
    seeing the test app. `publish_game` with `projectId`, `everyone: true` and no files publishes what is on the test app as it is
    (files sent go over it) and asks the user once (a confirmation in the chat, or a link to press) before people see it;
-   hosting, the features on in the test app and `config` are in that same confirmation. On `approval_required` with a
+   hosting, the features on in the test app, `config` and `functions` (send the code again) are in that same confirmation. On `approval_required` with a
    `confirmUrl`: open it / show it as in §5, then call `publish_game` with `pendingActionId` (again right away while waiting).
 5. **A game published here before (even in another chat):** `projectId` (`projects_list`; only the game the user named, never one with a similar name) + `features` + `prepare: true` give its
    keys and steps; `read: true` gives its code. Change that code (do not start over) and send only changed or new files: the others stay.

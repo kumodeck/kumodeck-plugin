@@ -99,6 +99,7 @@ unless the steps below say so.
    `uploadId` from the first part's result on the next ones; the last call (without `more`) publishes and returns the URL.
    Parts work up to several MB, images and sounds included, with nothing for the user to do.
 3. **Settings** (e.g. `multiplayer.modes`): pass part of `kumo.config.json` as `config` on any call; it is checked and merged.
+   **Server code** (the `functions-d1` Skill): pass it as `functions` with the files; with **everyone** it is in the same one confirmation.
 4. **Update:** the same, with `projectId` and the new files. **Everyone** (only when the user asked for it):
    `everyone: true` on the last call; the user confirms once (in the chat or on a link); on a `confirmUrl`, call
    `publish_game` again with `pendingActionId`.
