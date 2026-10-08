@@ -65,6 +65,12 @@ kumodeck --version       # the KUMODeck CLI
 ```
 
 No `kumodeck`? Only when installation is permitted, install it once: `npm install -g kumodeck` (or run each command as `npx kumodeck <command>`).
+In an AI's own workspace (Grok Bot, ChatGPT's agent or code runner, Claude's code execution on the web, Codex cloud,
+Claude Code on the web), `npx kumodeck@latest <command>` works the same, sign-in included (link and code, below). Big
+games (several MB or more, many images, sounds or 3D models) go this way, `npx kumodeck@latest login` then
+`npx kumodeck@latest deploy <folder>`, not through the chat (`deploy` Skill §3b:
+KUMODeck takes 50 MB per file and 500 MB in all; parts through the chat, 20 MB). `npx` cannot download (`ENOTFOUND`,
+`EAI_AGAIN`, a timeout) = the workspace has no internet: publish through the chat instead.
 Every `kumodeck` command prints the next command to run; add `--json` to read results and errors (`error.code`,
 `error.hint`) as data. Exit codes: 0 ok, 1 server or connection error, 2 wrong usage (read the hint), 3 not logged in.
 
@@ -89,7 +95,7 @@ Read the result and do only what is missing:
 | `developer.emailVerified: false` | Ask the user to open the confirmation email from KUMODeck and paste the link here, then run `kumodeck verify <link>`. No email: `kumodeck verify --resend`. Accounts made with Google / GitHub are already confirmed |
 | `prepaid.balance` is 0 or `prepaid.canSpend: false` | Run `kumodeck billing topup` (default $5; any amount from $0.50; the card processing fee (about 6%) is added on top, so the amount chosen lands in the balance). It prints a Stripe payment page and waits: show the URL, **the user pays there** (you never see or type card details). When it prints the new balance, go on |
 
-**Signing in** (the same on the user's computer, in the cloud, over SSH): `kumodeck login` prints a link and a code
+**Signing in** (the same on the user's computer, in the cloud or an AI's own workspace, over SSH): `kumodeck login` prints a link and a code
 (like `BCDF-GHJK`). Show the user both, and say only: "Open this link. If it shows the same code, press Allow." The user
 pastes nothing back. The command waits about 100 seconds; if it ends with exit code 4 (`login_pending`, "Not signed in
 yet"), run `kumodeck login --resume` (same link and code) and repeat until it prints the signed-in email. Do not run

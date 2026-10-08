@@ -51,7 +51,6 @@ all test-only and previous-refusal safeguards still apply.
 
 ## Codex: publishing intent and the one human confirmation
 
-<!-- WHY（2026-10-04 のレビュー）: 公開の依頼で確認ページを開くまで進め、チャットの追加返答待ちをなくす。 -->
 - **"Publish" / "put it online" / 「公開して」 (or the like)**: `kumodeck test-deploy` first (development),
   verify the intended behavior there, then prepare the production publish and open KUMODeck's confirmation page. The
   request authorizes preparation; **only the user's confirmation on that page authorizes the live change**. Do not add a
@@ -152,13 +151,19 @@ in one line when they differ. In development, push them with `kumodeck config pu
 
 ## 3b. Publishing from a web chat (no terminal, no files)
 
-Claude or ChatGPT on the web (and their phone apps) have no terminal and no access to the user's computer: use the
-KUMODeck MCP tools only. The same environments, URLs and confirmations as above apply.
+**A big game where you can run commands** (an AI with its own workspace: Grok Bot, ChatGPT's agent or code runner,
+Claude's code execution on the web, Codex cloud, Claude Code on the web): a game of several MB or more, or with many
+images, sounds or 3D models, goes first with the CLI from disk (KUMODeck takes 50 MB per file and 500 MB in all; parts in
+the chat stop at 20 MB and 1,000 files). `npx kumodeck@latest login` prints a link and a code for the user ("Open this
+link. If it shows the same code, press Allow."; then `login --resume` until signed in: `start` Skill, "Signing in"). In
+the game's folder: `npx kumodeck@latest init --name "<Game name>"` (a game already here: `--project <slug>`), then
+`npx kumodeck@latest deploy <folder>` (the test app). `npx` cannot download (`ENOTFOUND`, `EAI_AGAIN`, a timeout) = no
+internet there: send it in parts. Parts: smaller games or no commands; the upload page (step 6): only when neither works.
 
-**Use `publish_game` alone** when the user asks to make and publish (or update) a game or app, and do not call other tools
-for it. Web chats ask the user about each new tool once (「このツールを使ってよいですか？」): every step and follow-up here
-is a call to `publish_game`, so the user is asked once. The user wants it all done in the chat: no downloads, no dropping
-files, no settings to change (the upload page in step 6 is the only exception, and only for very big games).
+**No commands** (Claude or ChatGPT on the web, their phone apps: no terminal, no access to the user's computer):
+**use `publish_game` alone** to make and publish (or update) a game or app; the same environments, URLs and confirmations apply.
+Web chats ask about each new tool once (「このツールを使ってよいですか？」), so every step here is a `publish_game` call. The user
+wants it all done in the chat: no downloads, no dropping files, no settings to change (except the upload page, step 6).
 
 1. **New game (also one made elsewhere: keep its code, add to it): prepare first.** `publish_game` with `name`, `features` (`saves`,
    `multiplayer`, `realtimeChannels`, `emailLogin`, `stats` …) and `prepare: true`. It makes the project, turns on hosting
@@ -172,10 +177,9 @@ files, no settings to change (the upload page in step 6 is the only exception, a
 2. **Send the files** with `projectId`: text files as `content` (plain text), images and sounds as `contentBase64`, paths
    from the site root (`index.html` at the root). About 100 KB per call: a bigger game goes **in parts** — `more: true`
    on each part, the `uploadId` from the first part's result on the next ones, and a last call without `more`, which
-   publishes. Parts work up to several MB, images and sounds included. End your reply with `tellTheUser` in the user's
-   language: the closing line of §1 (no question, no explanation; `ifAskedAboutX` only if they try
-   to post it on X or ask). While sending, say it in plain words ("Putting your game on the test app…"), never the
-   argument names (`everyone`, `prepare`, `more`, `uploadId`).
+   publishes. Parts take up to 20 MB, images and sounds included. End your reply with `tellTheUser` in the user's language:
+   the closing line of §1 (`ifAskedAboutX` only if they try to post it on X or ask). While sending, say it in plain words
+   ("Putting your game on the test app…"), never the argument names (`everyone`, `prepare`, `more`, `uploadId`).
 3. **Settings:** `config` = part of `kumo.config.json` (e.g. `{ "multiplayer": { "modes": [...] } }`), on any call. It is
    merged into the current settings (objects merge, lists replace), checked like a push, and refused with the path if
    something is wrong (nothing changes). **Server code**: `functions` with the files (one ES module as `content`; `functions-d1` Skill).
@@ -186,14 +190,11 @@ files, no settings to change (the upload page in step 6 is the only exception, a
    `confirmUrl`: open it / show it as in §5, then call `publish_game` with `pendingActionId` (again right away while waiting).
 5. **A game published here before (even in another chat):** `projectId` (`projects_list`; only the game the user named, never one with a similar name) + `features` + `prepare: true` give its
    keys and steps; `read: true` gives its code. Change that code (do not start over) and send only changed or new files: the others stay.
-6. **Last resort — a game too big to send in parts** (well over several MB of images or sounds): call `publish_game`
-   without files. It returns `uploadAt` (a page) and `tellTheUser`: make a zip with `index.html` at the top, give the user a
-   download link, and say "Download the zip, then drop it on this page:" 「zip をダウンロードして、このページに落として
-   ください」. Then call `publish_game` again right away with `projectId` and `waitToken` until it returns the URL.
+6. **Last resort — too big for parts and no commands to run** (above): `publish_game` without files returns `uploadAt`
+   (a page): zip it (`index.html` at the top), give a download link, say "Download the zip, then drop it on this page:"
+   「zip をダウンロードして、このページに落としてください」, then call again with `projectId` and `waitToken`.
 
-On a computer with a terminal (Claude Code, Codex), the single-step tools are also there for finer changes:
-`project_create`, `config_push`, `hosting_deploy` (`environment: "production"` uploads, then asks once) and
-`hosting_upload_page`; for big builds use `kumodeck deploy`.
+With a terminal (Claude Code, Codex): single-step tools (`project_create`, `config_push`, `hosting_deploy`) for finer changes.
 
 ## 4. After deploying (check)
 
@@ -204,13 +205,13 @@ On a computer with a terminal (Claude Code, Codex), the single-step tools are al
 - Headers and redirects: a `_headers` / `_redirects` file at the root of the deployed folder works as on Cloudflare
   (same format and limits; e.g. COOP/COEP, CSP, `Cache-Control`, `/old /new 301`). Lines KUMODeck skipped come back in
   `warnings` (`line`, reason, `limit`): fix them and deploy again. SPA routing is `web.spaFallback`, not `/* /index.html 200`.
-- Share it on X: post **the published app's URL** (production). The test app's URL never shows a card on X (KUMODeck
-  answers X's link reader there with a page without one), and the test app shows a small "This is a test version" bar
-  with a link to the published app once there is one. The card needs its tags inside `<head>`: if the page has none,
-  `kumodeck share on`, then `kumodeck share tags` and write them near `</head>`; the same tags are right in the test app
-  and the published app (one image URL), so write them once. KUMODeck does not add them to pages. `share tags` works while
-  only the test app has card images on (it says so; run `kumodeck share on` before publishing so the image shows). If it says
-  card images are off for both apps, run `kumodeck share on` and ask again.
+- Share it on X: post **the published app's URL** (production). The test app's URL never shows a card on X (KUMODeck answers
+  X's link reader there with a page without one), and the test app shows a small "This is a test version" bar with a link to
+  the published app once there is one. The card needs its tags inside `<head>`: if the page has none, `kumodeck share on`,
+  then `kumodeck share tags` and write them near `</head>`; the same tags are right in the test app and the published app
+  (one image URL), so write them once. KUMODeck does not add them to pages. `share tags` works while only the test app has
+  card images on (it says so; run `kumodeck share on` before publishing so the image shows). If it says card images are off
+  for both apps, run `kumodeck share on` and ask again.
 
 ## 5. Roll back (instant)
 
@@ -228,16 +229,15 @@ Rollback switches which uploaded version is live; it re-uploads nothing and dele
 again the same way. It does not change settings: if the newer version needed a config change, push the matching
 `kumo.config.json` too. Versions belong to one environment: to move a tested build to production, run
 `kumodeck deploy --env production` with the same folder (files already uploaded are not sent again).
-Over MCP: `deployments_list` and `deploy_activate` do the same (production asks the user to confirm).
-If an MCP tool returns `approval_required` with a `confirmUrl` (clients without confirmation forms),
-nothing changed yet: open the link in the user's browser yourself (`open <url>` on macOS, `xdg-open <url>` on Linux,
-`start "" "<url>"` on Windows, or your browser tool; `openLink` has the exact commands) and tell them what to press (`tellUser`).
-Only if you cannot open it, show them the link. Never press the button yourself, and never try another way. Then call
-`pending_action_continue`, and call it again right away each time it returns `approval_required` — do not wait for the user
-to reply — until it returns `done` or an error (the link works for 10 minutes).
-`hosting_deploy` to production with hosting still off returns one link for both (`bundle.count` 2: hosting on + publish; needs the
-`write:config` permission): one press, then `pending_action_continue` sends both in order. `hosting_deploy` to production
-also turns on features that are on in development but off in production, in the same confirmation.
+Over MCP: `deployments_list` and `deploy_activate` do the same (production asks the user to confirm). If an MCP tool returns
+`approval_required` with a `confirmUrl` (clients without confirmation forms), nothing changed yet: open the link in the
+user's browser yourself (`open <url>` on macOS, `xdg-open <url>` on Linux, `start "" "<url>"` on Windows, or your browser
+tool; `openLink` has the exact commands) and tell them what to press (`tellUser`). Only if you cannot open it, show them the
+link. Never press the button yourself, and never try another way. Then call `pending_action_continue`, and call it again
+right away each time it returns `approval_required` — do not wait for the user to reply — until it returns `done` or an
+error (the link works for 10 minutes). `hosting_deploy` to production with hosting still off returns one link for both
+(`bundle.count` 2: hosting on + publish; needs the `write:config` permission): one press, then `pending_action_continue`
+sends both in order. `hosting_deploy` to production also turns on features that are on in development but off in production, in the same confirmation.
 
 ## 6. Functions (the project's own server code)
 

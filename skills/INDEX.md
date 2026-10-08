@@ -82,6 +82,15 @@ In a web chat (claude.ai, chatgpt.com, the phone apps) there is no terminal (`ku
 are not on your side: you only have the KUMODeck MCP tools. You can still build and publish; the `deploy` Skill →
 "Publishing from a web chat" has the steps.
 
+**A big game, and you can run commands in your own workspace** (Grok Bot, ChatGPT's agent or code runner, Claude's code
+execution on the web, Codex cloud, Claude Code on the web): a game of several MB or more, or with many images, sounds or
+3D models, goes first with `npx kumodeck@latest login` (show the user the link and the code it prints: "Open this link.
+If it shows the same code, press Allow."; then `npx kumodeck@latest login --resume` until signed in) and
+`npx kumodeck@latest deploy <folder>` from the workspace's disk (`deploy` Skill §3b).
+KUMODeck takes 50 MB per file and 500 MB in all; parts through the chat (step 2) stop at 20 MB and 1,000 files. If `npx`
+cannot download (`ENOTFOUND`, `EAI_AGAIN`, a timeout), the workspace has no internet: use parts. Parts are for smaller
+games or no commands; the upload page (step 5) only when neither works.
+
 **When the user asks to make and publish (or update) a game or app, use `publish_game` alone — do not call other tools
 for it.** The chat asks the user about each new tool once; every step and follow-up here is a call to `publish_game`, so
 the user is asked once. The user wants it all done in the chat: never make them download, drop files or change settings
@@ -97,13 +106,13 @@ unless the steps below say so.
 2. **Send the files** with `projectId`. Text files (HTML, JS, CSS, JSON, SVG) as `content` (plain text), images and sounds
    as `contentBase64`. Keep each call to about 100 KB: send a bigger game **in parts** — `more: true` on every part and the
    `uploadId` from the first part's result on the next ones; the last call (without `more`) publishes and returns the URL.
-   Parts work up to several MB, images and sounds included, with nothing for the user to do.
+   Parts take up to 20 MB and 1,000 files, images and sounds included, with nothing for the user to do.
 3. **Settings** (e.g. `multiplayer.modes`): pass part of `kumo.config.json` as `config` on any call; it is checked and merged.
    **Server code** (the `functions-d1` Skill): pass it as `functions` with the files; with **everyone** it is in the same one confirmation.
 4. **Update:** the same, with `projectId` and the new files. **Everyone** (only when the user asked for it):
    `everyone: true` on the last call; the user confirms once (in the chat or on a link); on a `confirmUrl`, call
    `publish_game` again with `pendingActionId`.
-5. **Last resort, only for a game too big to send in parts** (well over several MB of images or sounds): call
+5. **Last resort, only for a game too big to send in parts, with no commands to run** (above): call
    `publish_game` without files; it gives a page where the user drops a zip ("Download the zip, then drop it on this
    page:" 「zip をダウンロードして、このページに落としてください」); call it again right away with `projectId` and `waitToken`.
 6. Keys for other services: "Asking for a key" below (the same box, no terminal needed).
